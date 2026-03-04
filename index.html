@@ -1,1 +1,876 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>もふもふ育成ゲーム</title>
 
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600&display=swap');
+
+    body{
+      font-family:'Fredoka', 'MS Pゴシック','HGMaruGothicMPRO',sans-serif;
+      background:linear-gradient(135deg, #FFE58C 0%, #FFD870 100%);
+      display:flex; justify-content:center; align-items:center;
+      min-height:100vh; padding:15px;
+    }
+
+    /* === 本体 === */
+    #device{
+      width:380px;
+      background:linear-gradient(to bottom, #fffbf0 0%, #fff8e7 100%);
+      border:10px solid #a68563;
+      border-radius:50px;
+      box-shadow:0 25px 50px rgba(0,0,0,.25),
+                 inset 0 1px 0 rgba(255,255,255,.5),
+                 0 0 0 14px #d4a574;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+    }
+
+    /* === ボタン領域（上段4） === */
+    #topButtons{
+      background:linear-gradient(180deg, #FFE58C 0%, #FFD870 100%);
+      padding:16px 12px;
+      border-bottom:5px solid #8b7355;
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:12px;
+    }
+
+    /* === スクリーン（中央） === */
+    #screenWrapper{
+      flex:1;
+      position:relative;
+      overflow:hidden;
+      background:
+        repeating-linear-gradient(
+          45deg,
+          #FFB6E8 0px,
+          #FFB6E8 45px,
+          #87CEEB 45px,
+          #87CEEB 90px
+        );
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:300px;
+      box-shadow:inset 0 4px 8px rgba(0,0,0,.05);
+    }
+
+    #screen{
+      position:relative;
+      width:100%;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+
+    #screen.night{
+      background:
+        repeating-linear-gradient(
+          45deg,
+          #1a1a2e 0px,
+          #1a1a2e 45px,
+          #0f3460 45px,
+          #0f3460 90px
+        );
+    }
+
+    /* === ステータス（上部） === */
+    #status-bar{
+      position:absolute;
+      top:10px; left:10px; right:10px;
+      font-size:10px;
+      color:#333;
+      font-family:'Fredoka', monospace;
+      font-weight:600;
+      letter-spacing:0.5px;
+      background:rgba(255,255,255,.92);
+      padding:8px 10px;
+      border:2px solid #a68563;
+      border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,.12);
+      backdrop-filter:blur(8px);
+    }
+    #screen.night #status-bar{ 
+      color:#0f0; 
+      background:rgba(0,0,0,.85);
+      border-color:#0f0;
+    }
+
+    .status-line{
+      display:flex;
+      justify-content:space-between;
+      width:100%;
+      gap:8px;
+      align-items:center;
+      margin:3px 0;
+    }
+
+    .status-label{
+      font-weight:600;
+      min-width:45px;
+      font-size:9px;
+      color:#666;
+    }
+    #screen.night .status-label{ color:#0f0; }
+
+    .status-bar-container{
+      display:flex;
+      gap:4px;
+      align-items:center;
+      flex:1;
+    }
+
+    .progress-bar{
+      flex:1;
+      height:6px;
+      background:rgba(0,0,0,.1);
+      border:1px solid rgba(0,0,0,.2);
+      border-radius:3px;
+      overflow:hidden;
+      position:relative;
+    }
+    #screen.night .progress-bar{
+      background:rgba(255,255,255,.1);
+      border-color:rgba(255,255,255,.2);
+    }
+
+    .progress-fill{
+      height:100%;
+      background:linear-gradient(90deg, #FF69B4, #FFB6D9);
+      border-radius:2px;
+      transition:width 0.3s ease;
+      box-shadow:0 0 4px rgba(255,105,180,.4);
+    }
+
+    .meter-label{
+      font-size:8px;
+      font-weight:bold;
+      min-width:28px;
+      text-align:center;
+      color:#333;
+    }
+    #screen.night .meter-label{ color:#0f0; }
+
+    /* === アイコン表示エリア === */
+    .status-icon-container{
+      position:absolute;
+      top:10px;
+      right:10px;
+      display:flex;
+      gap:4px;
+      font-size:16px;
+      z-index:5;
+    }
+    .icon-anim{ animation:pulse-icon 1.5s ease-in-out infinite; }
+    @keyframes pulse-icon{
+      0%,100%{ transform:scale(1); }
+      50%{ transform:scale(1.15); }
+    }
+
+    /* === キャラ === */
+    #character-container{
+      position:relative;
+      width:160px;
+      height:160px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex:1;
+      margin-top:20px;
+    }
+
+    #characterSvg{
+      width:140px;
+      height:140px;
+      filter:drop-shadow(3px 5px 8px rgba(0,0,0,.25));
+      user-select:none;
+    }
+    #screen.night #characterSvg{
+      filter:drop-shadow(3px 5px 8px rgba(0,0,0,.5));
+    }
+
+    .sleep-z{
+      position:absolute;
+      font-size:14px;
+      font-weight:bold;
+      color:#333;
+      animation:float-z 1.5s ease-in-out infinite;
+      display:none;
+    }
+    #screen.night .sleep-z{ color:#0f0; }
+
+    .sleep-z.z1{ top:15px; right:10px; animation-delay:0s; }
+    .sleep-z.z2{ top:28px; right:20px; animation-delay:.25s; }
+    .sleep-z.z3{ top:42px; right:30px; animation-delay:.5s; }
+    @keyframes float-z{
+      0%,100%{ opacity:0; transform:translate(0,0); }
+      50%{ opacity:1; transform:translate(10px,-10px); }
+    }
+
+    /* === メッセージ === */
+    #message{
+      position:absolute;
+      bottom:15px; left:10px; right:10px;
+      background:rgba(0,0,0,.88);
+      color:#0f0;
+      border:3px solid #0f0;
+      border-radius:8px;
+      padding:10px;
+      font-size:11px;
+      font-family:'Fredoka', monospace;
+      text-align:center;
+      min-height:36px;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      white-space:pre-wrap;
+      animation:messageSlide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index:50;
+      font-weight:500;
+      box-shadow:0 6px 16px rgba(0,0,0,.3);
+    }
+    @keyframes messageSlide{
+      0%{ opacity:0; transform:translateY(20px); }
+      100%{ opacity:1; transform:translateY(0); }
+    }
+
+    /* === メニュー === */
+    #menu{
+      position:absolute; inset:0;
+      background:rgba(0,0,0,.9);
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      z-index:100;
+      border-radius:12px;
+      backdrop-filter:blur(4px);
+      animation:fadeIn 0.2s ease;
+    }
+    #menu.show{ display:flex; }
+    @keyframes fadeIn{
+      0%{ opacity:0; }
+      100%{ opacity:1; }
+    }
+
+    .menu-item{
+      background:linear-gradient(135deg, #fff9e6 0%, #fff3d0 100%);
+      border:3px solid #a68563;
+      border-radius:12px;
+      padding:12px 24px;
+      font-size:13px;
+      cursor:pointer;
+      font-weight:600;
+      color:#333;
+      transition:all 0.15s;
+      min-width:130px;
+      text-align:center;
+      user-select:none;
+      box-shadow:0 4px 12px rgba(0,0,0,.15);
+      font-family:'Fredoka', sans-serif;
+    }
+    .menu-item:hover{
+      transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(0,0,0,.2);
+    }
+    .menu-item:active{ 
+      transform:translateY(2px);
+      box-shadow:0 2px 6px rgba(0,0,0,.1);
+    }
+
+    /* === ボタン === */
+    .btn{
+      width:76px; height:76px;
+      border:4px solid #8b7355;
+      border-radius:18px;
+      background:linear-gradient(180deg, #fff9e6 0%, #fff0d0 100%);
+      font-size:32px;
+      cursor:pointer;
+      box-shadow:0 6px 0 #5a4a3a,
+                 inset 0 1px 2px rgba(255,255,255,.9),
+                 inset 0 -2px 4px rgba(0,0,0,.05);
+      transition:all .06s;
+      font-weight:600;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .btn::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.4), transparent);
+      opacity:0;
+      transition:opacity 0.2s;
+    }
+
+    .btn:hover::before{
+      opacity:1;
+    }
+
+    .btn:active{
+      transform:translateY(6px);
+      box-shadow:0 0 0 #5a4a3a,
+                 inset 0 1px 2px rgba(255,255,255,.9),
+                 inset 0 -2px 4px rgba(0,0,0,.1);
+    }
+
+    .btn-label{
+      position:absolute;
+      bottom:-24px;
+      left:50%;
+      transform:translateX(-50%);
+      font-size:10px;
+      text-align:center;
+      color:#333;
+      font-weight:700;
+      line-height:1;
+      white-space:nowrap;
+      font-family:'Fredoka', sans-serif;
+      letter-spacing:0.5px;
+    }
+
+    /* === 下部：ボタン領域 === */
+    #bottomButtons{
+      background:linear-gradient(0deg, #FFE58C 0%, #FFD870 100%);
+      padding:16px 12px;
+      border-top:5px solid #8b7355;
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:12px;
+      position:relative;
+    }
+
+    /* === レスポンシブ === */
+    @media(max-width:480px){
+      #device{ width:100%; max-width:380px; }
+      .btn{ width:70px; height:70px; font-size:28px; border-width:3px; }
+      .btn-label{ font-size:9px; bottom:-22px; }
+      #screenWrapper{ min-height:280px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="device">
+
+    <!-- 上段ボタン（ごはん、電気、遊び、注射） -->
+    <div id="topButtons">
+      <div style="position:relative;">
+        <button class="btn" onclick="openFoodMenu()">🍽️</button>
+      </div>
+      <div style="position:relative;">
+        <button class="btn" onclick="toggleLight()">💡</button>
+      </div>
+      <div style="position:relative;">
+        <button class="btn" onclick="playWithPet()">🎮</button>
+      </div>
+      <div style="position:relative;">
+        <button class="btn" onclick="treatPet()">💉</button>
+      </div>
+    </div>
+
+    <!-- スクリーン -->
+    <div id="screenWrapper">
+      <div id="screen">
+        <!-- ステータス表示 -->
+        <div id="status-bar">
+          <div class="status-line">
+            <span class="status-label">HUN</span>
+            <div class="status-bar-container">
+              <div class="progress-bar"><div class="progress-fill" id="hun-bar" style="width:75%"></div></div>
+              <span class="meter-label"><span id="hunger-val">3</span>/4</span>
+            </div>
+          </div>
+          <div class="status-line">
+            <span class="status-label">HAP</span>
+            <div class="status-bar-container">
+              <div class="progress-bar"><div class="progress-fill" id="hap-bar" style="width:75%; background:linear-gradient(90deg, #FF1493, #FFB6D9);"></div></div>
+              <span class="meter-label"><span id="happy-val">3</span>/4</span>
+            </div>
+          </div>
+          <div class="status-line">
+            <span class="status-label">Age  W:15g</span>
+            <span id="time-display" style="font-weight:700; font-size:10px;">00:00</span>
+          </div>
+        </div>
+
+        <!-- 状態アイコン -->
+        <div class="status-icon-container">
+          <span id="attn-icon" class="icon-anim" style="display:none;">❗</span>
+          <span id="hungry-icon" style="display:none;">🍖</span>
+          <span id="happy-icon" style="display:none;">💔</span>
+          <span id="sick-icon" style="display:none;">🤒</span>
+          <span id="poop-icon" style="display:none;">💩</span>
+          <span id="dead-icon" style="display:none;">⚰️</span>
+        </div>
+
+        <!-- キャラクター -->
+        <div id="character-container">
+          <svg id="characterSvg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- 起床状態 -->
+            <g id="awake-state">
+              <!-- 体 -->
+              <ellipse cx="50" cy="58" rx="30" ry="34" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <!-- 頭 -->
+              <circle cx="50" cy="28" r="24" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              
+              <!-- 左耳 -->
+              <ellipse cx="34" cy="10" rx="9" ry="13" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <ellipse cx="34" cy="12" rx="5" ry="8" fill="#FFB6C1" opacity="0.7"/>
+              <!-- 右耳 -->
+              <ellipse cx="66" cy="10" rx="9" ry="13" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <ellipse cx="66" cy="12" rx="5" ry="8" fill="#FFB6C1" opacity="0.7"/>
+              
+              <!-- 左目 -->
+              <circle cx="41" cy="25" r="3.5" fill="#333"/>
+              <circle cx="41.8" cy="24" r="1.5" fill="#fff" opacity="0.8"/>
+              <!-- 右目 -->
+              <circle cx="59" cy="25" r="3.5" fill="#333"/>
+              <circle cx="59.8" cy="24" r="1.5" fill="#fff" opacity="0.8"/>
+              
+              <!-- 口 -->
+              <path d="M 50 34 Q 47 36 50 37.5 Q 53 36 50 34" fill="#FFB6C1" opacity="0.8"/>
+              
+              <!-- 左足 -->
+              <ellipse cx="38" cy="88" rx="8" ry="11" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <!-- 右足 -->
+              <ellipse cx="62" cy="88" rx="8" ry="11" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              
+              <!-- お腹 -->
+              <ellipse cx="50" cy="62" rx="20" ry="22" fill="#FFE4D6" opacity="0.8"/>
+              
+              <!-- 瞬き用の目カバー（非表示） -->
+              <rect id="blink-left" x="39" y="22" width="6" height="6" fill="#F4E4D7" style="display:none;"/>
+              <rect id="blink-right" x="56" y="22" width="6" height="6" fill="#F4E4D7" style="display:none;"/>
+            </g>
+            
+            <!-- 睡眠状態 -->
+            <g id="sleep-state" style="display:none;">
+              <!-- 体（寝ている） -->
+              <ellipse cx="50" cy="55" rx="36" ry="26" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <!-- 頭 -->
+              <circle cx="34" cy="48" r="22" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <!-- 左目（Zの形） -->
+              <path d="M 28 45 L 34 41 L 28 40" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- 右目 -->
+              <path d="M 38 48 L 44 44 L 38 43" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round"/>
+              <!-- 口（寝顔） -->
+              <path d="M 32 54 Q 32 56 30 56" fill="none" stroke="#FFB6C1" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+              <!-- 足 -->
+              <ellipse cx="57" cy="72" rx="8" ry="10" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+              <ellipse cx="72" cy="74" rx="8" ry="10" fill="#F4E4D7" stroke="#8B7355" stroke-width="2.5"/>
+            </g>
+          </svg>
+          <div class="sleep-z z1">zzz</div>
+          <div class="sleep-z z2">zzz</div>
+          <div class="sleep-z z3">zzz</div>
+        </div>
+
+        <!-- メッセージ -->
+        <div id="message"></div>
+
+        <!-- メニュー -->
+        <div id="menu">
+          <div class="menu-item" onclick="feedPet('meal')">🍙 ごはん</div>
+          <div class="menu-item" onclick="feedPet('snack')">🍬 おやつ</div>
+          <div class="menu-item" onclick="closeMenu()">もどる</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下段ボタン（掃除、パラメータ、しつけ、呼び出し） -->
+    <div id="bottomButtons">
+      <div style="position:relative;">
+        <button class="btn" onclick="toiletPet()">🚽</button>
+      </div>
+      <div style="position:relative;">
+        <button class="btn" onclick="showStatus()">📊</button>
+      </div>
+      <div style="position:relative;">
+        <button class="btn" onclick="disciplinePet()">📣</button>
+      </div>
+      <div style="position:relative;">
+        <button class="btn" onclick="showMood()">📢</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const CFG = {
+      MAX: 4,
+      MIN_WT: 10,
+      MAX_WT: 35,
+      TICK_MS: 8000,
+      ATTN_TIMEOUT_MS: 20000,
+      AGE_TICKS: 90,
+      SLEEP_FROM: 21,
+      SLEEP_TO: 7,
+      DEAD_MISS: 5,
+      saveKey: "mofuPet_pro_v1"
+    };
+
+    let state = {
+      hunger: 3,
+      happy: 3,
+      discipline: 2,
+      weight: 15,
+      poop: 0,
+      sick: false,
+      sleeping: false,
+      lightOn: true,
+      attention: false,
+      attentionType: null,
+      attentionSince: 0,
+      careMiss: 0,
+      age: 0,
+      tickCount: 0,
+      dead: false,
+      isMenuOpen: false,
+    };
+
+    const UI = {
+      screen: document.getElementById("screen"),
+      screenWrapper: document.getElementById("screenWrapper"),
+      message: document.getElementById("message"),
+      menu: document.getElementById("menu"),
+      time: document.getElementById("time-display"),
+      hunBar: document.getElementById("hun-bar"),
+      hapBar: document.getElementById("hap-bar"),
+      hunVal: document.getElementById("hunger-val"),
+      hapVal: document.getElementById("happy-val"),
+      attnIcon: document.getElementById("attn-icon"),
+      hungryIcon: document.getElementById("hungry-icon"),
+      happyIcon: document.getElementById("happy-icon"),
+      sickIcon: document.getElementById("sick-icon"),
+      poopIcon: document.getElementById("poop-icon"),
+      deadIcon: document.getElementById("dead-icon"),
+      awakeState: document.getElementById("awake-state"),
+      sleepState: document.getElementById("sleep-state"),
+      sleepZs: document.querySelectorAll(".sleep-z"),
+      blinkLeft: document.getElementById("blink-left"),
+      blinkRight: document.getElementById("blink-right"),
+    };
+
+    let blinkInterval;
+
+    function startBlinking(){
+      if(blinkInterval) clearInterval(blinkInterval);
+      blinkInterval = setInterval(()=> {
+        if(!state.sleeping && !state.dead){
+          const blinkDuration = 100;
+          UI.blinkLeft.style.display = "block";
+          UI.blinkRight.style.display = "block";
+          setTimeout(()=> {
+            UI.blinkLeft.style.display = "none";
+            UI.blinkRight.style.display = "none";
+          }, blinkDuration);
+        }
+      }, 3000 + Math.random() * 2000);
+    }
+
+    function showMessage(text, ms=2000){
+      UI.message.textContent = text;
+      UI.message.style.display = "flex";
+      window.clearTimeout(showMessage._t);
+      showMessage._t = window.setTimeout(()=> UI.message.style.display="none", ms);
+    }
+
+    function save(){
+      localStorage.setItem(CFG.saveKey, JSON.stringify(state));
+    }
+
+    function load(){
+      const s = localStorage.getItem(CFG.saveKey);
+      if(!s) return;
+      try{
+        const obj = JSON.parse(s);
+        state = { ...state, ...obj };
+      }catch(e){}
+    }
+
+    function updateClock(){
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2,"0");
+      const mm = String(now.getMinutes()).padStart(2,"0");
+      UI.time.textContent = `${hh}:${mm}`;
+    }
+
+    function isSleepHour(){
+      const h = new Date().getHours();
+      return (h >= CFG.SLEEP_FROM || h < CFG.SLEEP_TO);
+    }
+
+    function applySleepState(){
+      if(state.dead) return;
+      const shouldSleep = isSleepHour();
+      if(shouldSleep && !state.sleeping){
+        state.sleeping = true;
+      }
+      if(!shouldSleep && state.sleeping){
+        state.sleeping = false;
+        state.lightOn = true;
+      }
+    }
+
+    function setAttention(type){
+      if(state.dead) return;
+      if(state.attention && state.attentionType === type) return;
+      state.attention = true;
+      state.attentionType = type;
+      state.attentionSince = Date.now();
+    }
+
+    function clearAttention(){
+      state.attention = false;
+      state.attentionType = null;
+      state.attentionSince = 0;
+    }
+
+    function addCareMiss(reason){
+      if(state.dead) return;
+      state.careMiss += 1;
+      showMessage(`⚠️ ミス+1\n(${reason})`, 2200);
+      if(state.careMiss >= CFG.DEAD_MISS){
+        state.dead = true;
+        showMessage("…\n😢", 3000);
+      }
+    }
+
+    function checkAttention(){
+      if(state.dead) return;
+      if(state.sleeping){
+        if(state.lightOn) setAttention("sleep_light");
+      }else{
+        if(state.sick) setAttention("sick");
+        else if(state.poop > 0) setAttention("poop");
+        else if(state.hunger === 0) setAttention("hungry");
+        else if(state.happy === 0) setAttention("unhappy");
+        else{
+          const tantrumChance = 0.10 + ((CFG.MAX - state.discipline) * 0.05);
+          if(Math.random() < tantrumChance && state.hunger >= CFG.MAX && state.happy >= CFG.MAX){
+            setAttention("tantrum");
+          }
+        }
+      }
+      if(state.attention && (Date.now() - state.attentionSince) >= CFG.ATTN_TIMEOUT_MS){
+        addCareMiss("放置");
+        clearAttention();
+      }
+    }
+
+    function tick(){
+      if(state.dead) return;
+      applySleepState();
+      const sleeping = state.sleeping;
+      if(!sleeping){
+        if(Math.random() < 0.60) state.hunger = Math.max(0, state.hunger - 1);
+        if(Math.random() < 0.45) state.happy  = Math.max(0, state.happy - 1);
+      }else{
+        if(Math.random() < 0.25) state.hunger = Math.max(0, state.hunger - 1);
+        if(Math.random() < 0.15) state.happy  = Math.max(0, state.happy - 1);
+      }
+      const poopChance = sleeping ? 0.18 : 0.35;
+      if(Math.random() < poopChance && state.poop < 3){
+        state.poop += 1;
+      }
+      if(!state.sick){
+        let p = 0.05;
+        p += state.poop * 0.12;
+        if(state.hunger === 0) p += 0.18;
+        if(state.weight >= 28) p += 0.10;
+        if(Math.random() < p){
+          state.sick = true;
+          showMessage("🤧 びょうきに\nなってしまった…", 2200);
+        }
+      }else{
+        const sickMissChance = sleeping ? 0.10 : 0.22;
+        if(Math.random() < sickMissChance){
+          addCareMiss("病気");
+        }
+      }
+      if(state.hunger === 0 && state.weight > CFG.MIN_WT && Math.random() < 0.40){
+        state.weight -= 1;
+      }
+      state.tickCount += 1;
+      if(state.tickCount % CFG.AGE_TICKS === 0){
+        state.age += 1;
+      }
+      checkAttention();
+      render();
+      save();
+    }
+
+    function render(){
+      updateClock();
+      const night = state.sleeping || !state.lightOn;
+      UI.screen.classList.toggle("night", night);
+
+      // ステータスバーの更新
+      const hunPercent = (state.hunger / CFG.MAX) * 100;
+      const hapPercent = (state.happy / CFG.MAX) * 100;
+      UI.hunBar.style.width = hunPercent + "%";
+      UI.hapBar.style.width = hapPercent + "%";
+      UI.hunVal.textContent = state.hunger;
+      UI.hapVal.textContent = state.happy;
+
+      UI.attnIcon.style.display = state.attention ? "block" : "none";
+      UI.hungryIcon.style.display = (state.hunger === 0 && !state.dead) ? "block" : "none";
+      UI.happyIcon.style.display = (state.happy === 0 && !state.dead) ? "block" : "none";
+      UI.sickIcon.style.display = (state.sick && !state.dead) ? "block" : "none";
+      UI.poopIcon.style.display = (state.poop > 0 && !state.dead) ? "block" : "none";
+      UI.deadIcon.style.display = state.dead ? "block" : "none";
+
+      const shouldSleep = state.sleeping || state.dead;
+      UI.awakeState.style.display = shouldSleep ? "none" : "block";
+      UI.sleepState.style.display = shouldSleep ? "block" : "none";
+      UI.sleepZs.forEach(z => z.style.display = state.sleeping ? "block" : "none");
+      UI.menu.classList.toggle("show", state.isMenuOpen);
+    }
+
+    function openFoodMenu(){
+      if(state.dead) return;
+      if(state.sleeping){ showMessage("寝てるよ…"); return; }
+      state.isMenuOpen = true;
+      render();
+    }
+
+    function closeMenu(){
+      state.isMenuOpen = false;
+      render();
+    }
+
+    function feedPet(type){
+      if(state.dead) return;
+      closeMenu();
+      if(state.sleeping){ showMessage("ぐーぐー…"); return; }
+      if(state.sick){ showMessage("食べられない…"); return; }
+      if(type === "meal"){
+        if(state.hunger >= CFG.MAX){ showMessage("おなかいっぱい！"); return; }
+        state.hunger = Math.min(CFG.MAX, state.hunger + 1);
+        state.weight = Math.min(CFG.MAX_WT, state.weight + 1);
+        showMessage("😋 もぐもぐ！");
+      }
+      if(type === "snack"){
+        if(state.happy >= CFG.MAX){ showMessage("もう十分！"); return; }
+        state.happy = Math.min(CFG.MAX, state.happy + 1);
+        state.weight = Math.min(CFG.MAX_WT, state.weight + 2);
+        showMessage("😋 あまい！");
+      }
+      if(state.attention && (state.attentionType === "hungry" || state.attentionType === "unhappy")){
+        clearAttention();
+      }
+      render(); save();
+    }
+
+    function playWithPet(){
+      if(state.dead) return;
+      if(state.sleeping){ showMessage("寝てるよ…"); return; }
+      if(state.sick){ showMessage("遊べない…"); return; }
+      if(state.hunger === 0){ showMessage("おなかすいた…"); return; }
+      if(state.happy >= CFG.MAX){ showMessage("十分だね！"); return; }
+      state.happy = Math.min(CFG.MAX, state.happy + 1);
+      state.hunger = Math.max(0, state.hunger - 1);
+      showMessage("😄 わーい！");
+      if(state.attention && state.attentionType === "unhappy"){
+        clearAttention();
+      }
+      render(); save();
+    }
+
+    function toiletPet(){
+      if(state.dead) return;
+      if(state.sleeping){ showMessage("寝てるよ…"); return; }
+      if(state.poop === 0){ showMessage("きれい！"); return; }
+      state.poop = 0;
+      showMessage("✨ すっきり！");
+      if(state.attention && state.attentionType === "poop"){
+        clearAttention();
+      }
+      render(); save();
+    }
+
+    function treatPet(){
+      if(state.dead) return;
+      if(state.sleeping){ showMessage("寝てるよ…"); return; }
+      if(!state.sick){ showMessage("元気だね！"); return; }
+      state.sick = false;
+      showMessage("💪 なおった！");
+      if(state.attention && state.attentionType === "sick"){
+        clearAttention();
+      }
+      render(); save();
+    }
+
+    function toggleLight(){
+      if(state.dead) return;
+      state.lightOn = !state.lightOn;
+      if(state.sleeping && !state.lightOn){
+        if(state.attention && state.attentionType === "sleep_light"){
+          clearAttention();
+        }
+        showMessage("💤 おやすみ…");
+      }else{
+        showMessage(state.lightOn ? "💡 ON" : "🌙 OFF");
+      }
+      render(); save();
+    }
+
+    function disciplinePet(){
+      if(state.dead) return;
+      if(state.sleeping){ showMessage("寝てるよ…"); return; }
+      if(!(state.attention && state.attentionType === "tantrum")){
+        showMessage("しつけは\nわがまま時に！");
+        return;
+      }
+      state.discipline = Math.min(CFG.MAX, state.discipline + 1);
+      clearAttention();
+      showMessage("👍 えらい！");
+      render(); save();
+    }
+
+    function showStatus(){
+      if(state.dead) return;
+      const txt = `HUN:${state.hunger}/${CFG.MAX}\nHAP:${state.happy}/${CFG.MAX}\nDIS:${state.discipline}/${CFG.MAX}\n\nAge:${state.age}\nW:${state.weight}g`;
+      showMessage(txt, 2800);
+    }
+
+    function showMood(){
+      if(state.dead) return;
+      if(state.sleeping){ showMessage("すやすや…", 1400); return; }
+      if(state.sick){ showMessage("つらい…", 1400); return; }
+      if(state.hunger === 0){ showMessage("おなか…", 1400); return; }
+      if(state.happy === 0){ showMessage("さみしい…", 1400); return; }
+      showMessage("😊 ごきげん！", 1400);
+    }
+
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape") closeMenu();
+    });
+
+    function init(){
+      load();
+      render();
+      startBlinking();
+      setInterval(updateClock, 1000);
+      setInterval(tick, CFG.TICK_MS);
+      showMessage("🎮 はじめまして！", 2000);
+    }
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>
