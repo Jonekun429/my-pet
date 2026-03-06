@@ -9,154 +9,256 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#ecfdf5">
     
-    <!-- ホーム画面用のアイコン画像（添付2の画像を icon.png として同じ階層に置いてください） -->
     <link rel="apple-touch-icon" href="icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             overscroll-behavior-y: none;
-            background-color: #ecfdf5;
+            background-color: #f2fbf6; 
             font-family: 'Helvetica Neue', Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            color: #94a3b8;
+            color: #64748b;
         }
         
         .grass-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 100 Q 25 80 30 100 M70 100 Q 75 70 80 100 M45 100 Q 50 85 55 100' stroke='%23d1fae5' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 30 90 Q 40 70 50 90 M 90 60 Q 95 45 100 60 M 60 110 Q 70 95 80 110' stroke='%23d1fae5' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-size: 150px 150px;
-            animation: scrollBg 2.5s linear infinite;
+            animation: scrollBg 3s linear infinite;
         }
         .grass-bg.paused { animation-play-state: paused; }
         @keyframes scrollBg { from { background-position: 0 -150px; } to { background-position: 0 0; } }
 
-        /* 滑らかで可愛いモーション */
+        /* --- モーション定義 --- */
         @keyframes walk-bounce {
-            0%   { transform: translateY(0); }
-            50%  { transform: translateY(-8px) scale(1.02, 0.98); }
-            100% { transform: translateY(0); }
+            0%   { transform: translateY(0) scale(1, 1); }
+            50%  { transform: translateY(-10px) scale(0.98, 1.02); }
+            100% { transform: translateY(0) scale(1, 1); }
         }
         @keyframes breathe { 
             0% { transform: scale(1); } 
             50% { transform: scale(1.02, 0.98) translateY(2px); } 
             100% { transform: scale(1); } 
         }
-        @keyframes roll-happy {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(10deg); }
-            50% { transform: rotate(0deg); }
-            75% { transform: rotate(-10deg); }
-            100% { transform: rotate(0deg); }
+        @keyframes happy-bounce {
+            0% { transform: translateY(0) scale(1); }
+            30% { transform: translateY(-15px) scale(0.95, 1.05); }
+            50% { transform: translateY(0) scale(1.05, 0.95); }
+            70% { transform: translateY(-8px) scale(0.98, 1.02); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        @keyframes koron {
+            0% { transform: rotate(0deg) translateY(0); }
+            40% { transform: rotate(-20deg) translateY(-15px); }
+            70% { transform: rotate(200deg) translateY(-20px); }
+            100% { transform: rotate(360deg) translateY(0); }
         }
         @keyframes floatSymbol { 
-            0% { opacity: 0; transform: translateY(10px) scale(0.8); } 
-            20% { opacity: 1; transform: translateY(-25px) scale(1.1); } 
-            80% { opacity: 1; transform: translateY(-30px) scale(1); } 
-            100% { opacity: 0; transform: translateY(-40px) scale(0.8); } 
+            0% { opacity: 0; transform: translateY(5px) scale(0.8); } 
+            20% { opacity: 1; transform: translateY(-20px) scale(1.1); } 
+            80% { opacity: 1; transform: translateY(-25px) scale(1); } 
+            100% { opacity: 0; transform: translateY(-35px) scale(0.8); } 
+        }
+        @keyframes eye-blink {
+            0%, 94%, 98%, 100% { transform: scaleY(1); }
+            96% { transform: scaleY(0.1); }
         }
 
         .anim-breathe { animation: breathe 4s ease-in-out infinite; }
         .anim-walk { animation: walk-bounce 0.6s ease-in-out infinite; }
-        .anim-roll { animation: roll-happy 1.5s ease-in-out infinite; }
-        .anim-float { animation: floatSymbol 2.5s ease-in-out forwards; }
+        .anim-happy { animation: happy-bounce 0.8s ease-in-out; }
+        .anim-koron { animation: koron 1.2s ease-in-out forwards; }
+        .anim-float { animation: floatSymbol 2s ease-in-out forwards; }
+        
+        .eye-blink { 
+            animation: eye-blink 6s infinite; 
+            transform-origin: 150px 110px; 
+        }
 
         .hidden { display: none !important; }
         
+        /* UIパーツ */
         .info-panel {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(8px);
-            border-radius: 16px;
-            padding: 8px 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 10px 20px;
+            box-shadow: 0 8px 16px rgba(0, 100, 50, 0.04);
             display: flex;
             flex-direction: column;
             align-items: center;
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
         .action-btn {
-            background: linear-gradient(135deg, #34d399, #10b981);
-            color: white;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            background: #ffffff;
+            color: #10b981;
+            border: 2px solid #10b981;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .action-btn.active-state {
-            background: rgba(255, 255, 255, 0.8);
-            color: #10b981;
-            border: 2px solid #10b981;
-            box-shadow: none;
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+            border-color: transparent;
         }
 
-        /* SVGの滑らかな変形のためのトランジション */
         #pet-body, #pet-belly, #pet-eyes {
-            transition: all 0.3s ease-out;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
+        .pet-shadow {
+            filter: drop-shadow(0px 15px 10px rgba(0,0,0,0.06));
+        }
+
+        #selection-modal {
+            background: rgba(242, 251, 246, 0.98);
+            backdrop-filter: blur(12px);
+        }
+        .pet-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .pet-card:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="grass-bg paused h-screen w-screen flex flex-col items-center justify-between overflow-hidden relative">
 
+    <!-- === 相棒選択モーダル === -->
+    <div id="selection-modal" class="absolute inset-0 z-50 flex flex-col items-center justify-center hidden">
+        <div class="text-center px-6 mb-8">
+            <h1 class="text-2xl font-bold text-slate-700 mb-4 tracking-wide">どの子とお散歩する？</h1>
+            <p class="text-sm text-slate-600 leading-relaxed font-medium">
+                生き物だから、ずっと一緒にいたい子を選んで。<br>
+                この子達はスマホの中でしか生きられません。<br>
+                忘れずに一緒に過ごしてあげてね。
+            </p>
+        </div>
+        
+        <div class="flex gap-6 w-full px-8 justify-center">
+            <div class="pet-card flex-1 flex flex-col items-center p-6 cursor-pointer" onclick="selectPet('silver')">
+                <svg width="120" height="100" viewBox="0 0 300 240" class="mb-4 pointer-events-none">
+                    <defs>
+                        <radialGradient id="grad-silver-prev" cx="40%" cy="30%" r="70%">
+                            <stop offset="0%" stop-color="#f8fafc" />
+                            <stop offset="60%" stop-color="#cbd5e1" />
+                            <stop offset="100%" stop-color="#94a3b8" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="150" cy="120" rx="95" ry="95" fill="url(#grad-silver-prev)" filter="url(#fluffy)" />
+                    <circle cx="105" cy="130" r="5" fill="#334155" />
+                    <circle cx="195" cy="130" r="5" fill="#334155" />
+                </svg>
+                <span class="font-bold text-slate-600">シルバー</span>
+            </div>
+            <div class="pet-card flex-1 flex flex-col items-center p-6 cursor-pointer" onclick="selectPet('gold')">
+                <svg width="120" height="100" viewBox="0 0 300 240" class="mb-4 pointer-events-none">
+                    <defs>
+                        <radialGradient id="grad-gold-prev" cx="40%" cy="30%" r="70%">
+                            <stop offset="0%" stop-color="#fef9c3" />
+                            <stop offset="60%" stop-color="#fde047" />
+                            <stop offset="100%" stop-color="#eab308" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="150" cy="120" rx="95" ry="95" fill="url(#grad-gold-prev)" filter="url(#fluffy)" />
+                    <circle cx="105" cy="130" r="5" fill="#451a03" />
+                    <circle cx="195" cy="130" r="5" fill="#451a03" />
+                </svg>
+                <span class="font-bold text-amber-600">ゴールド</span>
+            </div>
+        </div>
+        <p class="text-xs text-rose-400 font-bold mt-8">※あとから変更できません</p>
+    </div>
+
+    <!-- ヘッダー -->
     <header class="w-full p-6 flex justify-between items-start z-10">
         <div class="info-panel">
-            <span class="text-[10px] font-bold text-slate-400 mb-1">今日の歩数</span>
-            <div class="flex items-center gap-2 text-slate-500">
+            <span class="text-[10px] font-bold text-slate-400 mb-1 tracking-wide">今日の歩数</span>
+            <div class="flex items-center gap-2 text-slate-600">
                 <span class="text-xl">🐾</span>
-                <span id="steps-display" class="text-2xl font-bold tracking-tighter">0</span>
+                <span id="steps-display" class="text-3xl font-extrabold tracking-tighter">0</span>
             </div>
         </div>
 
         <div class="flex flex-col items-end gap-2">
             <div class="info-panel">
-                <span class="text-[10px] font-bold text-slate-400 mb-1">あつめたコイン</span>
-                <div class="flex items-center gap-2 text-slate-500">
+                <span class="text-[10px] font-bold text-slate-400 mb-1 tracking-wide">あつめたコイン</span>
+                <div class="flex items-center gap-2 text-slate-600">
                     <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" stroke="#fbbf24" stroke-width="2" fill="#fde047"/><circle cx="12" cy="12" r="6" stroke="#fbbf24" stroke-width="1" fill="none"/><path d="M12 7v10" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span id="coins-display" class="text-xl font-bold tracking-tighter">0</span>
+                    <span id="coins-display" class="text-2xl font-extrabold tracking-tighter">0</span>
                 </div>
             </div>
-            <div class="bg-white/50 px-3 py-1.5 rounded-full flex items-center gap-1 border border-slate-200 shadow-sm">
-                <span class="text-[9px] font-bold text-slate-400">🎩 お店準備中...</span>
+            <div class="bg-white/70 px-4 py-2 rounded-full flex items-center gap-1 border border-slate-100 shadow-sm backdrop-blur-sm">
+                <span class="text-[10px] font-bold text-slate-400 tracking-wide">🎩 お店準備中...</span>
             </div>
         </div>
     </header>
 
     <main class="flex-1 w-full flex justify-center items-center relative z-10">
         
+        <!-- 感情シンボル -->
         <div id="symbol-container" class="absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none opacity-0 z-20">
             <svg id="sym-note" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"><path d="M 35 70 A 10 10 0 1 1 25 60 A 10 10 0 0 1 35 70 Z M 35 60 L 35 25 L 75 15 L 75 50" fill="#cbd5e1"/><path d="M 75 60 A 10 10 0 1 1 65 50 A 10 10 0 0 1 75 60 Z" fill="#cbd5e1"/><path d="M 35 40 L 75 30" /></svg>
-            <svg id="sym-angry" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#fca5a5" stroke-width="8" stroke-linecap="round"><path d="M 20 40 L 40 50 L 20 60 M 80 40 L 60 50 L 80 60 M 40 20 L 50 40 L 60 20 M 40 80 L 50 60 L 60 80" /></svg>
-            <svg id="sym-sweat" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#bae6fd" stroke="#7dd3fc" stroke-width="4"><path d="M 50 20 C 30 60 20 80 50 80 C 80 80 70 60 50 20 Z" /></svg>
             <svg id="sym-sparkle" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#fef08a" stroke="#fde047" stroke-width="4"><path d="M 50 10 Q 50 40 20 50 Q 50 60 50 90 Q 50 60 80 50 Q 50 40 50 10 Z" /></svg>
         </div>
 
-        <div id="pet-container" class="anim-breathe origin-center mt-8">
-            <svg width="300" height="200" viewBox="0 0 300 200">
+        <!-- キャラクター本体 -->
+        <div id="pet-container" class="anim-breathe origin-center mt-12 pet-shadow cursor-pointer">
+            <svg width="300" height="240" viewBox="0 0 300 240">
                 <defs>
-                    <filter id="fluffy">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
+                    <filter id="fluffy" x="-20%" y="-20%" width="140%" height="140%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="3" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
                     </filter>
+                    
+                    <radialGradient id="bodyGrad-silver" cx="40%" cy="30%" r="70%">
+                        <stop offset="0%" stop-color="#f8fafc" />
+                        <stop offset="60%" stop-color="#cbd5e1" />
+                        <stop offset="100%" stop-color="#94a3b8" />
+                    </radialGradient>
+                    <radialGradient id="bodyGrad-gold" cx="40%" cy="30%" r="70%">
+                        <stop offset="0%" stop-color="#fef9c3" />
+                        <stop offset="60%" stop-color="#fde047" />
+                        <stop offset="100%" stop-color="#eab308" />
+                    </radialGradient>
+                    
+                    <radialGradient id="bellyGrad" cx="50%" cy="35%" r="65%">
+                        <stop offset="0%" stop-color="#ffffff" />
+                        <stop offset="70%" stop-color="#f8fafc" />
+                        <stop offset="100%" stop-color="#e2e8f0" />
+                    </radialGradient>
                 </defs>
                 
-                <!-- グレーの体 -->
-                <ellipse id="pet-body" cx="150" cy="110" rx="90" ry="80" fill="#cbd5e1" filter="url(#fluffy)" />
+                <!-- 体のベース（グレーやゴールドの背中） -->
+                <ellipse id="pet-body" cx="150" cy="120" rx="95" ry="95" fill="url(#bodyGrad-silver)" filter="url(#fluffy)" />
                 
-                <!-- 白いお腹（添付2に合わせて丸みを持たせ、位置を調整） -->
-                <ellipse id="pet-belly" cx="150" cy="145" rx="75" ry="40" fill="#ffffff" filter="url(#fluffy)" opacity="0.95" />
+                <!-- コロン時の白いお腹（少し上にずらして下側にベースの色を見せる） -->
+                <ellipse id="pet-belly" cx="150" cy="110" rx="84" ry="76" fill="url(#bellyGrad)" filter="url(#fluffy)" opacity="0" />
                 
-                <!-- 目のグループ（白いお腹に被らないように少し上に配置） -->
-                <g id="pet-eyes" transform="translate(0, -5)">
-                    <g id="face-normal"><circle cx="105" cy="115" r="5" fill="#475569" /><circle cx="195" cy="115" r="5" fill="#475569" /></g>
-                    <g id="face-smile" class="hidden"><path d="M 95 115 Q 105 105 115 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M 185 115 Q 195 105 205 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/></g>
-                    <g id="face-sleep" class="hidden"><path d="M 95 115 Q 105 120 115 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M 185 115 Q 195 120 205 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/></g>
-                    <g id="face-angry" class="hidden"><path d="M 95 120 L 115 110" stroke="#475569" stroke-width="4" stroke-linecap="round" /><circle cx="105" cy="120" r="3.5" fill="#475569" /><path d="M 205 120 L 185 110" stroke="#475569" stroke-width="4" stroke-linecap="round" /><circle cx="195" cy="120" r="3.5" fill="#475569" /></g>
+                <!-- 目線は常に少し斜め上 -->
+                <g id="pet-eyes" transform="translate(0, -12)">
+                    <g id="eyes-inner" class="eye-blink">
+                        <g id="face-normal">
+                            <circle cx="105" cy="125" r="4.5" fill="#334155" class="eye-color" />
+                            <circle cx="195" cy="125" r="4.5" fill="#334155" class="eye-color" />
+                        </g>
+                        <g id="face-smile" class="hidden">
+                            <path d="M 98 125 Q 105 132 112 125" stroke="#334155" stroke-width="4" stroke-linecap="round" fill="none" class="eye-stroke" />
+                            <path d="M 188 125 Q 195 132 202 125" stroke="#334155" stroke-width="4" stroke-linecap="round" fill="none" class="eye-stroke" />
+                        </g>
+                    </g>
                 </g>
             </svg>
         </div>
     </main>
 
     <footer class="w-full p-8 flex flex-col justify-center items-center z-10 pb-12">
-        <button id="btn-action" class="action-btn px-8 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
-            <span>しゅっぱつ！</span>
-            <span class="text-[10px] font-normal opacity-90">スマホを持って歩こう</span>
+        <button id="btn-action" class="action-btn px-10 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
+            <span class="tracking-widest">しゅっぱつ！</span>
+            <span class="text-[10px] font-normal opacity-80">スマホを持って歩こう</span>
         </button>
     </footer>
 
@@ -166,6 +268,7 @@
         let savedDate = localStorage.getItem('petDate');
         let steps = parseInt(localStorage.getItem('petStepsNum')) || 0;
         let coins = parseInt(localStorage.getItem('petCoinsNum')) || 0;
+        let selectedColor = localStorage.getItem('petColor'); 
 
         if (savedDate !== todayStr) {
             steps = 0;
@@ -180,21 +283,46 @@
             petBody: document.getElementById('pet-body'),
             petBelly: document.getElementById('pet-belly'),
             petEyes: document.getElementById('pet-eyes'),
+            eyesInner: document.getElementById('eyes-inner'),
             symbolContainer: document.getElementById('symbol-container'),
             symbols: document.querySelectorAll('#symbol-container svg'),
             btn: document.getElementById('btn-action'),
-            faces: document.querySelectorAll('#pet-eyes > g')
+            faces: document.querySelectorAll('#eyes-inner > g'),
+            modal: document.getElementById('selection-modal')
         };
 
-        // 歩数判定用の変数
+        function applyColorTheme(color) {
+            if (color === 'gold') {
+                ui.petBody.setAttribute('fill', 'url(#bodyGrad-gold)');
+                document.querySelectorAll('.eye-color').forEach(el => el.setAttribute('fill', '#451a03'));
+                document.querySelectorAll('.eye-stroke').forEach(el => el.setAttribute('stroke', '#451a03'));
+            } else {
+                ui.petBody.setAttribute('fill', 'url(#bodyGrad-silver)');
+                document.querySelectorAll('.eye-color').forEach(el => el.setAttribute('fill', '#334155'));
+                document.querySelectorAll('.eye-stroke').forEach(el => el.setAttribute('stroke', '#334155'));
+            }
+        }
+
+        function selectPet(color) {
+            selectedColor = color;
+            localStorage.setItem('petColor', color);
+            applyColorTheme(color);
+            ui.modal.classList.add('hidden');
+            lastMoveTime = Date.now(); 
+        }
+
+        if (!selectedColor) {
+            ui.modal.classList.remove('hidden');
+        } else {
+            applyColorTheme(selectedColor);
+        }
+
         let lastMoveTime = Date.now();
         let isWalking = false;
         let isLeftFoot = false;
-        let walkSpeedBuffer = [];
-        
-        // 連続カウント防止（デバウンス）用のタイマー設定
+        let isAnimating = false; 
+        let currentState = 'front';
         let lastStepCountTime = 0;
-        const STEP_COOLDOWN = 350; // ミリ秒（1歩歩いてから次を検知するまでの待機時間）
 
         function updateData() {
             ui.steps.innerText = steps;
@@ -203,84 +331,169 @@
             localStorage.setItem('petCoinsNum', coins);
         }
 
-        // --- 角度と表情を制御 ---
-        function updateCharacter(angle, expression, animClass, symbolId = null) {
+        // --- 角度と状態の制御 ---
+        const angles = {
+            front:  { body: { rx: 95, ry: 95 }, belly: { cx: 150, cy: 195, rx: 55, ry: 20, opacity: 0 }, eyes: { tx: 0, ty: -12, opacity: 1 } },
+            left:   { body: { rx: 110, ry: 85 }, belly: { cx: 120, cy: 185, rx: 50, ry: 25, opacity: 0 }, eyes: { tx: -25, ty: -12, opacity: 1 } },
+            right:  { body: { rx: 110, ry: 85 }, belly: { cx: 180, cy: 185, rx: 50, ry: 25, opacity: 0 }, eyes: { tx: 25, ty: -12, opacity: 1 } },
+            bottom: { body: { rx: 95, ry: 92 }, belly: { cx: 150, cy: 110, rx: 84, ry: 76, opacity: 1 }, eyes: { tx: 0, ty: 0, opacity: 0 } }
+        };
+
+        function updateCharacter(angleName, expression, animClass, symbolId = null) {
+            currentState = angleName;
+            
             ui.faces.forEach(f => f.classList.add('hidden'));
             const faceEl = document.getElementById(`face-${expression}`);
             if (faceEl) faceEl.classList.remove('hidden');
 
-            // 繊細なデザインの切り替え（画像2のバランスに調整）
-            switch(angle) {
-                case 'front':
-                    ui.petBody.setAttribute('rx', '90'); ui.petBody.setAttribute('ry', '80');
-                    ui.petBelly.setAttribute('cx', '150'); ui.petBelly.setAttribute('cy', '145');
-                    ui.petBelly.setAttribute('rx', '75'); ui.petBelly.setAttribute('ry', '40');
-                    ui.petBelly.style.opacity = '0.95';
-                    ui.petEyes.setAttribute('transform', 'translate(0, -5)'); // 目を少し上へ
-                    ui.petEyes.style.opacity = '1';
-                    break;
-                case 'left':
-                    ui.petBody.setAttribute('rx', '95'); ui.petBody.setAttribute('ry', '75');
-                    ui.petBelly.setAttribute('cx', '115'); ui.petBelly.setAttribute('cy', '145'); 
-                    ui.petBelly.setAttribute('rx', '65'); ui.petBelly.setAttribute('ry', '35');
-                    ui.petBelly.style.opacity = '0.95';
-                    ui.petEyes.setAttribute('transform', 'translate(-25, -5)');
-                    ui.petEyes.style.opacity = '1';
-                    break;
-                case 'right':
-                    ui.petBody.setAttribute('rx', '95'); ui.petBody.setAttribute('ry', '75');
-                    ui.petBelly.setAttribute('cx', '185'); ui.petBelly.setAttribute('cy', '145'); 
-                    ui.petBelly.setAttribute('rx', '65'); ui.petBelly.setAttribute('ry', '35');
-                    ui.petBelly.style.opacity = '0.95';
-                    ui.petEyes.setAttribute('transform', 'translate(25, -5)');
-                    ui.petEyes.style.opacity = '1';
-                    break;
-                case 'top':
-                    ui.petBody.setAttribute('rx', '90'); ui.petBody.setAttribute('ry', '85');
-                    ui.petBelly.style.opacity = '0'; // お腹は見えない
-                    ui.petEyes.setAttribute('transform', 'translate(0, -25)'); // 目は上寄り
-                    ui.petEyes.style.opacity = '1';
-                    break;
-                case 'bottom':
-                    ui.petBody.setAttribute('rx', '95'); ui.petBody.setAttribute('ry', '85');
-                    ui.petBelly.setAttribute('cx', '150'); ui.petBelly.setAttribute('cy', '110');
-                    ui.petBelly.setAttribute('rx', '95'); ui.petBelly.setAttribute('ry', '85');
-                    ui.petBelly.style.opacity = '1'; // 全面が白
-                    ui.petEyes.style.opacity = '0';  // 目は見えない
-                    break;
-            }
+            const p = angles[angleName] || angles['front'];
+            
+            ui.petBody.setAttribute('rx', p.body.rx); 
+            ui.petBody.setAttribute('ry', p.body.ry);
+            
+            ui.petBelly.setAttribute('cx', p.belly.cx);
+            ui.petBelly.setAttribute('cy', p.belly.cy);
+            ui.petBelly.setAttribute('rx', p.belly.rx);
+            ui.petBelly.setAttribute('ry', p.belly.ry);
+            ui.petBelly.style.opacity = p.belly.opacity;
 
-            ui.petContainer.className = 'origin-center mt-8';
-            if (animClass) ui.petContainer.classList.add(animClass);
-            ui.body.classList.toggle('paused', !(animClass === 'anim-walk' || animClass === 'anim-roll'));
+            ui.petEyes.setAttribute('transform', `translate(${p.eyes.tx}, ${p.eyes.ty})`);
+            ui.petEyes.style.opacity = p.eyes.opacity;
+
+            if (animClass) {
+                ui.petContainer.className = 'origin-center mt-12 pet-shadow cursor-pointer';
+                ui.petContainer.classList.add(animClass);
+            }
+            ui.body.classList.toggle('paused', !(animClass === 'anim-walk'));
 
             if (symbolId) {
                 ui.symbols.forEach(s => s.classList.add('hidden'));
                 const symEl = document.getElementById(`sym-${symbolId}`);
                 if (symEl) {
                     symEl.classList.remove('hidden');
-                    ui.symbolContainer.classList.remove('anim-float');
+                    ui.symbolContainer.className = 'absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none z-20';
                     void ui.symbolContainer.offsetWidth; 
                     ui.symbolContainer.classList.add('anim-float');
                 }
+            } else {
+                ui.symbolContainer.className = 'absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none opacity-0 z-20';
             }
         }
 
+        // --- 放置でコロンと寝転がる ---
+        function doKoron() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            ui.petContainer.className = 'origin-center mt-12 pet-shadow cursor-pointer';
+            void ui.petContainer.offsetWidth;
+            ui.petContainer.classList.add('anim-koron');
+
+            setTimeout(() => {
+                updateCharacter('bottom', 'normal', null);
+            }, 600);
+
+            setTimeout(() => {
+                ui.petContainer.classList.remove('anim-koron');
+                ui.petContainer.classList.add('anim-breathe');
+                isAnimating = false;
+            }, 1200);
+        }
+
+        // --- 放置とタップのロジック ---
         function checkBaseState() {
+            if (isAnimating) return;
             const hour = new Date().getHours();
             const idleTime = Date.now() - lastMoveTime;
 
             if (hour >= 23 || hour < 6) {
-                if (idleTime > 5000) updateCharacter('bottom', 'sleep', 'anim-breathe', 'note');
+                if (idleTime > 5000 && currentState !== 'bottom') doKoron();
             } else {
-                if (idleTime > 20000) updateCharacter('top', 'normal', 'anim-breathe', 'note');
-                else if (idleTime > 10000) updateCharacter('front', 'sleep', 'anim-breathe');
-                else if (idleTime > 2000) updateCharacter('front', 'normal', 'anim-breathe');
+                // 15秒放置でコロン
+                if (idleTime > 15000 && currentState !== 'bottom') {
+                    doKoron();
+                }
             }
         }
         setInterval(checkBaseState, 1000);
 
-        // 歩数がカウントされた時の処理
+        // --- なでる・タップの検知 ---
+        let touchStartX = 0;
+        let strokeCount = 0;
+
+        function handleInteractStart(e) {
+            if (isAnimating) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            touchStartX = clientX;
+            strokeCount = 0;
+        }
+
+        function handleInteractMove(e) {
+            if (!touchStartX || isAnimating) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const diff = Math.abs(clientX - touchStartX);
+
+            if (diff > 20) {
+                strokeCount++;
+                touchStartX = clientX; 
+            }
+            if (strokeCount >= 3) {
+                touchStartX = 0;
+                strokeCount = 0;
+                doPettingReaction();
+            }
+        }
+
+        function handleInteractEnd() {
+            if (touchStartX !== 0 && strokeCount === 0 && !isAnimating) {
+                doPettingReaction();
+            }
+            touchStartX = 0;
+            strokeCount = 0;
+        }
+
+        ui.petContainer.addEventListener('mousedown', handleInteractStart);
+        ui.petContainer.addEventListener('mousemove', handleInteractMove);
+        ui.petContainer.addEventListener('mouseup', handleInteractEnd);
+        ui.petContainer.addEventListener('mouseleave', handleInteractEnd);
+
+        ui.petContainer.addEventListener('touchstart', handleInteractStart, {passive: true});
+        ui.petContainer.addEventListener('touchmove', handleInteractMove, {passive: true});
+        ui.petContainer.addEventListener('touchend', handleInteractEnd);
+
+        // --- 喜んで起きるモーション ---
+        function doPettingReaction() {
+            isAnimating = true;
+            lastMoveTime = Date.now();
+            
+            if (currentState === 'bottom') {
+                updateCharacter('front', 'smile', 'anim-happy', 'sparkle');
+            } else {
+                updateCharacter('front', 'smile', 'anim-happy', 'note');
+            }
+
+            setTimeout(() => {
+                updateCharacter('front', 'normal', 'anim-breathe');
+                isAnimating = false;
+            }, 1500);
+        }
+
+        // --- 普段のキョロキョロ ---
+        function randomAction() {
+            if (isAnimating || Date.now() - lastMoveTime < 2000 || currentState === 'bottom') return; 
+            
+            const rand = Math.random();
+            if (rand < 0.2) {
+                updateCharacter('left', 'normal', 'anim-breathe');
+                setTimeout(() => { if(currentState === 'left' && !isAnimating) updateCharacter('front', 'normal', 'anim-breathe'); }, 2000);
+            } else if (rand < 0.4) {
+                updateCharacter('right', 'normal', 'anim-breathe');
+                setTimeout(() => { if(currentState === 'right' && !isAnimating) updateCharacter('front', 'normal', 'anim-breathe'); }, 2000);
+            }
+        }
+        setInterval(randomAction, 4000);
+
+        // --- 歩く ---
         function triggerMove() {
             lastMoveTime = Date.now();
             steps++;
@@ -288,89 +501,78 @@
             
             if (steps % 100 === 0) {
                 coins++;
-                updateCharacter('front', 'smile', 'anim-roll', 'sparkle');
+                updateCharacter('front', 'smile', 'anim-happy', 'sparkle');
                 updateData();
                 return;
             }
             updateData();
 
-            walkSpeedBuffer = walkSpeedBuffer.filter(t => lastMoveTime - t < 2000);
-            walkSpeedBuffer.push(lastMoveTime);
-            const speed = walkSpeedBuffer.length;
+            if (isAnimating) return;
 
-            if (speed > 10) {
-                updateCharacter('top', 'angry', 'anim-roll', 'sweat');
-            } else if (speed > 4) {
-                updateCharacter(isLeftFoot ? 'left' : 'right', 'smile', 'anim-walk', 'note');
+            if (currentState === 'bottom') {
+                updateCharacter('front', 'normal', 'anim-walk');
             } else {
                 updateCharacter(isLeftFoot ? 'left' : 'right', 'normal', 'anim-walk');
             }
         }
 
-        ui.petContainer.addEventListener('click', () => {
-            lastMoveTime = Date.now();
-            const reactions = [
-                {angle: 'front', exp: 'smile', anim: 'anim-roll', sym: 'sparkle'},
-                {angle: 'top', exp: 'normal', anim: 'anim-breathe', sym: 'note'},
-                {angle: 'bottom', exp: 'sleep', anim: 'anim-breathe', sym: null},
-                {angle: 'front', exp: 'angry', anim: 'anim-breathe', sym: 'angry'}
-            ];
-            const r = reactions[Math.floor(Math.random() * reactions.length)];
-            updateCharacter(r.angle, r.exp, r.anim, r.sym);
-        });
-
-        ui.btn.addEventListener('click', () => {
+        // --- センサー起動と万歩計ロジック（復旧版） ---
+        ui.btn.addEventListener('click', async () => {
             if (!isWalking) {
                 ui.btn.classList.add('active-state');
-                ui.btn.innerHTML = `<span class="text-sm">👣 おさんぽ中...</span>`;
+                ui.btn.innerHTML = `<span class="tracking-widest">おさんぽ中...</span>`;
                 isWalking = true;
+
+                // iOS 13以降のセンサー許可リクエスト
                 if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                    DeviceMotionEvent.requestPermission().then(s => {
-                        if (s === 'granted') window.addEventListener('devicemotion', handleMotion);
-                    });
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        } else {
+                            alert('センサーへのアクセスが拒否されました。設定から許可してください。');
+                        }
+                    } catch (error) {
+                        alert('センサーの起動に失敗しました。HTTPS環境で開いているか確認してください。');
+                    }
                 } else {
+                    // Android等
                     window.addEventListener('devicemotion', handleMotion);
                 }
-            }
-            // タップでも動作確認できるように1歩進める
-            const now = Date.now();
-            if (now - lastStepCountTime > STEP_COOLDOWN) {
-                triggerMove();
-                lastStepCountTime = now;
+            } else {
+                // PCでのテスト用：ボタンタップでも歩数を進める
+                const now = Date.now();
+                if (now - lastStepCountTime > STEP_COOLDOWN) {
+                    triggerMove();
+                    lastStepCountTime = now;
+                }
             }
         });
 
-        // 万歩計のアルゴリズム（精度向上版）
+        // 以前動作していた「重力込みの加速度差分」を使った安定版
         let lastX, lastY, lastZ;
         function handleMotion(e) {
-            let acc = e.acceleration; // 重力を除く加速度を優先取得
-            let accG = e.accelerationIncludingGravity;
+            let acc = e.accelerationIncludingGravity;
+            if (!acc) return;
+            
             let isStepDetected = false;
-
-            if (acc && acc.x !== null) {
-                // 加速度の大きさ（合成ベクトル）を計算
-                const magnitude = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-                // 閾値：軽く歩いた程度（1.8）で反応するように設定
-                if (magnitude > 1.8) {
+            if (lastX !== undefined) {
+                let deltaX = Math.abs(lastX - acc.x);
+                let deltaY = Math.abs(lastY - acc.y);
+                let deltaZ = Math.abs(lastZ - acc.z);
+                
+                // 閾値：5以上に設定し、歩行時の揺れに反応させる
+                if (deltaX > 5 || deltaY > 5 || deltaZ > 5) {
                     isStepDetected = true;
                 }
-            } else if (accG && accG.x !== null) {
-                // 重力込みのデータしか取れない場合の簡易判定
-                if (lastX !== undefined) {
-                    let deltaX = Math.abs(lastX - accG.x);
-                    let deltaY = Math.abs(lastY - accG.y);
-                    let deltaZ = Math.abs(lastZ - accG.z);
-                    if (deltaX > 3 || deltaY > 3 || deltaZ > 3) {
-                        isStepDetected = true;
-                    }
-                }
-                lastX = accG.x; lastY = accG.y; lastZ = accG.z;
             }
+            lastX = acc.x; 
+            lastY = acc.y; 
+            lastZ = acc.z;
 
-            // 歩行と判定された場合
             if (isStepDetected) {
                 const now = Date.now();
-                // 前回のカウントから一定時間（STEP_COOLDOWN）経過していないとカウントしない（チャタリング防止）
+                // クールダウン（350ms）でチャタリングを防止
                 if (now - lastStepCountTime > STEP_COOLDOWN) {
                     triggerMove();
                     lastStepCountTime = now;
@@ -379,7 +581,7 @@
         }
 
         updateData();
-        checkBaseState();
+        updateCharacter('front', 'normal', 'anim-breathe');
     </script>
 </body>
 </html>
