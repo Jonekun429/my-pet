@@ -8,7 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#ecfdf5">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23cbd5e1%22/></svg>">
+    
+    <!-- ホーム画面用のアイコン画像（添付2の画像を icon.png として同じ階層に置いてください） -->
+    <link rel="apple-touch-icon" href="icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -29,34 +31,35 @@
         .grass-bg.paused { animation-play-state: paused; }
         @keyframes scrollBg { from { background-position: 0 -150px; } to { background-position: 0 0; } }
 
-        /* キャラクターの動き */
-        @keyframes nyoki {
-            0%   { transform: scale(1, 1) translateX(0); }
-            30%  { transform: scale(1.15, 0.85) translateX(15px); }
-            70%  { transform: scale(0.85, 1.15) translateX(5px); }
-            100% { transform: scale(1, 1) translateX(0); }
+        /* 滑らかで可愛いモーション */
+        @keyframes walk-bounce {
+            0%   { transform: translateY(0); }
+            50%  { transform: translateY(-8px) scale(1.02, 0.98); }
+            100% { transform: translateY(0); }
         }
-        @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.02, 0.98) translateY(2px); } 100% { transform: scale(1); } }
-        
-        /* 左右にコロコロ転がるモーション */
-        @keyframes rollLR {
-            0% { transform: rotate(0deg) translateX(0); }
-            25% { transform: rotate(15deg) translateX(10px); }
-            50% { transform: rotate(0deg) translateX(0); }
-            75% { transform: rotate(-15deg) translateX(-10px); }
-            100% { transform: rotate(0deg) translateX(0); }
+        @keyframes breathe { 
+            0% { transform: scale(1); } 
+            50% { transform: scale(1.02, 0.98) translateY(2px); } 
+            100% { transform: scale(1); } 
         }
-
-        @keyframes yawn { 0% { transform: scale(1); } 50% { transform: scale(0.9, 1.1) translateY(-5px); } 100% { transform: scale(1); } }
-        @keyframes floatSymbol { 0% { opacity: 0; transform: translateY(10px) scale(0.8); } 20% { opacity: 1; transform: translateY(-25px) scale(1.1); } 80% { opacity: 1; transform: translateY(-30px) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(0.8); } }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        @keyframes roll-happy {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(-10deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes floatSymbol { 
+            0% { opacity: 0; transform: translateY(10px) scale(0.8); } 
+            20% { opacity: 1; transform: translateY(-25px) scale(1.1); } 
+            80% { opacity: 1; transform: translateY(-30px) scale(1); } 
+            100% { opacity: 0; transform: translateY(-40px) scale(0.8); } 
+        }
 
         .anim-breathe { animation: breathe 4s ease-in-out infinite; }
-        .anim-walk { animation: nyoki 0.8s ease-in-out infinite; }
-        .anim-roll-lr { animation: rollLR 1.2s ease-in-out infinite; }
-        .anim-yawn { animation: yawn 2s ease-in-out; }
+        .anim-walk { animation: walk-bounce 0.6s ease-in-out infinite; }
+        .anim-roll { animation: roll-happy 1.5s ease-in-out infinite; }
         .anim-float { animation: floatSymbol 2.5s ease-in-out forwards; }
-        .anim-pulse { animation: pulse 2s ease-in-out infinite; }
 
         .hidden { display: none !important; }
         
@@ -83,6 +86,11 @@
             border: 2px solid #10b981;
             box-shadow: none;
         }
+
+        /* SVGの滑らかな変形のためのトランジション */
+        #pet-body, #pet-belly, #pet-eyes {
+            transition: all 0.3s ease-out;
+        }
     </style>
 </head>
 <body class="grass-bg paused h-screen w-screen flex flex-col items-center justify-between overflow-hidden relative">
@@ -91,10 +99,7 @@
         <div class="info-panel">
             <span class="text-[10px] font-bold text-slate-400 mb-1">今日の歩数</span>
             <div class="flex items-center gap-2 text-slate-500">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <circle cx="7" cy="11" r="2.5"/><circle cx="11" cy="7" r="2.5"/><circle cx="16" cy="8" r="2.5"/><circle cx="20" cy="12" r="2.5"/>
-                    <path d="M14 19c-2.5 0-5-1.5-5-4.5s2-5.5 5-5.5 5 2.5 5 5.5-2.5 4.5-5 4.5z"/>
-                </svg>
+                <span class="text-xl">🐾</span>
                 <span id="steps-display" class="text-2xl font-bold tracking-tighter">0</span>
             </div>
         </div>
@@ -108,7 +113,7 @@
                 </div>
             </div>
             <div class="bg-white/50 px-3 py-1.5 rounded-full flex items-center gap-1 border border-slate-200 shadow-sm">
-                <span class="text-[9px] font-bold text-slate-400">おみせ準備中...</span>
+                <span class="text-[9px] font-bold text-slate-400">🎩 お店準備中...</span>
             </div>
         </div>
     </header>
@@ -122,37 +127,41 @@
             <svg id="sym-sparkle" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#fef08a" stroke="#fde047" stroke-width="4"><path d="M 50 10 Q 50 40 20 50 Q 50 60 50 90 Q 50 60 80 50 Q 50 40 50 10 Z" /></svg>
         </div>
 
-        <!-- キャラクター本体 -->
         <div id="pet-container" class="anim-breathe origin-center mt-8">
             <svg width="300" height="200" viewBox="0 0 300 200">
                 <defs>
                     <filter id="fluffy">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G" />
+                        <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
                     </filter>
                 </defs>
-                <!-- 本体：グレー -->
-                <ellipse cx="150" cy="110" rx="95" ry="85" fill="#cbd5e1" filter="url(#fluffy)" />
-                <!-- おなか：白色の毛並み -->
-                <ellipse cx="150" cy="130" rx="70" ry="55" fill="#ffffff" filter="url(#fluffy)" opacity="0.9" />
                 
-                <g id="face-normal" class="face hidden"><circle cx="105" cy="125" r="5.5" fill="#475569" /><circle cx="195" cy="125" r="5.5" fill="#475569" /></g>
-                <g id="face-sleep" class="face hidden"><path d="M 95 125 Q 105 120 115 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /><path d="M 185 125 Q 195 120 205 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /></g>
-                <g id="face-happy" class="face hidden"><path d="M 95 125 Q 105 115 115 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /><path d="M 185 125 Q 195 115 205 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /></g>
-                <g id="face-squint" class="face hidden"><line x1="100" y1="125" x2="110" y2="125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" /><line x1="190" y1="125" x2="200" y2="125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" /></g>
-                <g id="face-surprised" class="face hidden"><circle cx="105" cy="125" r="3" fill="#475569" /><circle cx="195" cy="125" r="3" fill="#475569" /></g>
+                <!-- グレーの体 -->
+                <ellipse id="pet-body" cx="150" cy="110" rx="90" ry="80" fill="#cbd5e1" filter="url(#fluffy)" />
+                
+                <!-- 白いお腹（添付2に合わせて丸みを持たせ、位置を調整） -->
+                <ellipse id="pet-belly" cx="150" cy="145" rx="75" ry="40" fill="#ffffff" filter="url(#fluffy)" opacity="0.95" />
+                
+                <!-- 目のグループ（白いお腹に被らないように少し上に配置） -->
+                <g id="pet-eyes" transform="translate(0, -5)">
+                    <g id="face-normal"><circle cx="105" cy="115" r="5" fill="#475569" /><circle cx="195" cy="115" r="5" fill="#475569" /></g>
+                    <g id="face-smile" class="hidden"><path d="M 95 115 Q 105 105 115 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M 185 115 Q 195 105 205 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/></g>
+                    <g id="face-sleep" class="hidden"><path d="M 95 115 Q 105 120 115 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M 185 115 Q 195 120 205 115" stroke="#475569" stroke-width="4" stroke-linecap="round" fill="none"/></g>
+                    <g id="face-angry" class="hidden"><path d="M 95 120 L 115 110" stroke="#475569" stroke-width="4" stroke-linecap="round" /><circle cx="105" cy="120" r="3.5" fill="#475569" /><path d="M 205 120 L 185 110" stroke="#475569" stroke-width="4" stroke-linecap="round" /><circle cx="195" cy="120" r="3.5" fill="#475569" /></g>
+                </g>
             </svg>
         </div>
     </main>
 
     <footer class="w-full p-8 flex flex-col justify-center items-center z-10 pb-12">
-        <button id="btn-action" class="action-btn anim-pulse px-8 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
+        <button id="btn-action" class="action-btn px-8 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
             <span>しゅっぱつ！</span>
             <span class="text-[10px] font-normal opacity-90">スマホを持って歩こう</span>
         </button>
     </footer>
 
     <script>
+        // --- データ管理 ---
         const todayStr = new Date().toDateString();
         let savedDate = localStorage.getItem('petDate');
         let steps = parseInt(localStorage.getItem('petStepsNum')) || 0;
@@ -167,15 +176,25 @@
             body: document.body,
             steps: document.getElementById('steps-display'),
             coins: document.getElementById('coins-display'),
-            pet: document.getElementById('pet-container'),
+            petContainer: document.getElementById('pet-container'),
+            petBody: document.getElementById('pet-body'),
+            petBelly: document.getElementById('pet-belly'),
+            petEyes: document.getElementById('pet-eyes'),
             symbolContainer: document.getElementById('symbol-container'),
             symbols: document.querySelectorAll('#symbol-container svg'),
             btn: document.getElementById('btn-action'),
-            faces: document.querySelectorAll('.face')
+            faces: document.querySelectorAll('#pet-eyes > g')
         };
 
+        // 歩数判定用の変数
         let lastMoveTime = Date.now();
         let isWalking = false;
+        let isLeftFoot = false;
+        let walkSpeedBuffer = [];
+        
+        // 連続カウント防止（デバウンス）用のタイマー設定
+        let lastStepCountTime = 0;
+        const STEP_COOLDOWN = 350; // ミリ秒（1歩歩いてから次を検知するまでの待機時間）
 
         function updateData() {
             ui.steps.innerText = steps;
@@ -184,24 +203,65 @@
             localStorage.setItem('petCoinsNum', coins);
         }
 
-        function setEmotion(faceId, animClass, symbolId = null) {
+        // --- 角度と表情を制御 ---
+        function updateCharacter(angle, expression, animClass, symbolId = null) {
             ui.faces.forEach(f => f.classList.add('hidden'));
-            const faceEl = document.getElementById(`face-${faceId}`);
+            const faceEl = document.getElementById(`face-${expression}`);
             if (faceEl) faceEl.classList.remove('hidden');
 
-            ui.pet.className = 'origin-center mt-8';
-            if (animClass) ui.pet.classList.add(animClass);
-            
-            ui.body.classList.toggle('paused', !(animClass === 'anim-walk' || animClass === 'anim-roll-lr'));
+            // 繊細なデザインの切り替え（画像2のバランスに調整）
+            switch(angle) {
+                case 'front':
+                    ui.petBody.setAttribute('rx', '90'); ui.petBody.setAttribute('ry', '80');
+                    ui.petBelly.setAttribute('cx', '150'); ui.petBelly.setAttribute('cy', '145');
+                    ui.petBelly.setAttribute('rx', '75'); ui.petBelly.setAttribute('ry', '40');
+                    ui.petBelly.style.opacity = '0.95';
+                    ui.petEyes.setAttribute('transform', 'translate(0, -5)'); // 目を少し上へ
+                    ui.petEyes.style.opacity = '1';
+                    break;
+                case 'left':
+                    ui.petBody.setAttribute('rx', '95'); ui.petBody.setAttribute('ry', '75');
+                    ui.petBelly.setAttribute('cx', '115'); ui.petBelly.setAttribute('cy', '145'); 
+                    ui.petBelly.setAttribute('rx', '65'); ui.petBelly.setAttribute('ry', '35');
+                    ui.petBelly.style.opacity = '0.95';
+                    ui.petEyes.setAttribute('transform', 'translate(-25, -5)');
+                    ui.petEyes.style.opacity = '1';
+                    break;
+                case 'right':
+                    ui.petBody.setAttribute('rx', '95'); ui.petBody.setAttribute('ry', '75');
+                    ui.petBelly.setAttribute('cx', '185'); ui.petBelly.setAttribute('cy', '145'); 
+                    ui.petBelly.setAttribute('rx', '65'); ui.petBelly.setAttribute('ry', '35');
+                    ui.petBelly.style.opacity = '0.95';
+                    ui.petEyes.setAttribute('transform', 'translate(25, -5)');
+                    ui.petEyes.style.opacity = '1';
+                    break;
+                case 'top':
+                    ui.petBody.setAttribute('rx', '90'); ui.petBody.setAttribute('ry', '85');
+                    ui.petBelly.style.opacity = '0'; // お腹は見えない
+                    ui.petEyes.setAttribute('transform', 'translate(0, -25)'); // 目は上寄り
+                    ui.petEyes.style.opacity = '1';
+                    break;
+                case 'bottom':
+                    ui.petBody.setAttribute('rx', '95'); ui.petBody.setAttribute('ry', '85');
+                    ui.petBelly.setAttribute('cx', '150'); ui.petBelly.setAttribute('cy', '110');
+                    ui.petBelly.setAttribute('rx', '95'); ui.petBelly.setAttribute('ry', '85');
+                    ui.petBelly.style.opacity = '1'; // 全面が白
+                    ui.petEyes.style.opacity = '0';  // 目は見えない
+                    break;
+            }
+
+            ui.petContainer.className = 'origin-center mt-8';
+            if (animClass) ui.petContainer.classList.add(animClass);
+            ui.body.classList.toggle('paused', !(animClass === 'anim-walk' || animClass === 'anim-roll'));
 
             if (symbolId) {
                 ui.symbols.forEach(s => s.classList.add('hidden'));
                 const symEl = document.getElementById(`sym-${symbolId}`);
                 if (symEl) {
                     symEl.classList.remove('hidden');
-                    ui.symbolContainer.classList.remove('anim-symbol');
+                    ui.symbolContainer.classList.remove('anim-float');
                     void ui.symbolContainer.offsetWidth; 
-                    ui.symbolContainer.classList.add('anim-symbol');
+                    ui.symbolContainer.classList.add('anim-float');
                 }
             }
         }
@@ -209,46 +269,60 @@
         function checkBaseState() {
             const hour = new Date().getHours();
             const idleTime = Date.now() - lastMoveTime;
+
             if (hour >= 23 || hour < 6) {
-                if (idleTime > 5000) setEmotion('sleep', 'anim-breathe');
+                if (idleTime > 5000) updateCharacter('bottom', 'sleep', 'anim-breathe', 'note');
             } else {
-                if (idleTime > 30000) setEmotion('sleep', 'anim-yawn', 'note');
-                else if (idleTime > 10000) setEmotion('squint', 'anim-breathe');
-                else if (idleTime > 2000) setEmotion('normal', 'anim-breathe');
+                if (idleTime > 20000) updateCharacter('top', 'normal', 'anim-breathe', 'note');
+                else if (idleTime > 10000) updateCharacter('front', 'sleep', 'anim-breathe');
+                else if (idleTime > 2000) updateCharacter('front', 'normal', 'anim-breathe');
             }
         }
         setInterval(checkBaseState, 1000);
 
+        // 歩数がカウントされた時の処理
         function triggerMove() {
             lastMoveTime = Date.now();
             steps++;
+            isLeftFoot = !isLeftFoot;
+            
             if (steps % 100 === 0) {
                 coins++;
-                setEmotion('happy', 'anim-roll-lr', 'sparkle'); // コイン獲得時はコロコロ転がって喜ぶ
-                setTimeout(updateData, 100);
+                updateCharacter('front', 'smile', 'anim-roll', 'sparkle');
+                updateData();
                 return;
             }
             updateData();
-            
-            // 普段の移動
-            if (steps % 10 === 0) setEmotion('normal', 'anim-walk');
+
+            walkSpeedBuffer = walkSpeedBuffer.filter(t => lastMoveTime - t < 2000);
+            walkSpeedBuffer.push(lastMoveTime);
+            const speed = walkSpeedBuffer.length;
+
+            if (speed > 10) {
+                updateCharacter('top', 'angry', 'anim-roll', 'sweat');
+            } else if (speed > 4) {
+                updateCharacter(isLeftFoot ? 'left' : 'right', 'smile', 'anim-walk', 'note');
+            } else {
+                updateCharacter(isLeftFoot ? 'left' : 'right', 'normal', 'anim-walk');
+            }
         }
 
-        ui.pet.addEventListener('click', () => {
+        ui.petContainer.addEventListener('click', () => {
             lastMoveTime = Date.now();
             const reactions = [
-                {f: 'happy', a: 'anim-roll-lr', s: 'sparkle'}, // タップでコロコロ転がる
-                {f: 'happy', a: 'anim-breathe', s: 'note'},
-                {f: 'surprised', a: 'anim-yawn', s: null}
+                {angle: 'front', exp: 'smile', anim: 'anim-roll', sym: 'sparkle'},
+                {angle: 'top', exp: 'normal', anim: 'anim-breathe', sym: 'note'},
+                {angle: 'bottom', exp: 'sleep', anim: 'anim-breathe', sym: null},
+                {angle: 'front', exp: 'angry', anim: 'anim-breathe', sym: 'angry'}
             ];
             const r = reactions[Math.floor(Math.random() * reactions.length)];
-            setEmotion(r.f, r.a, r.s);
+            updateCharacter(r.angle, r.exp, r.anim, r.sym);
         });
 
         ui.btn.addEventListener('click', () => {
             if (!isWalking) {
                 ui.btn.classList.add('active-state');
-                ui.btn.innerHTML = `<span>おさんぽ中...</span>`;
+                ui.btn.innerHTML = `<span class="text-sm">👣 おさんぽ中...</span>`;
                 isWalking = true;
                 if (typeof DeviceMotionEvent.requestPermission === 'function') {
                     DeviceMotionEvent.requestPermission().then(s => {
@@ -258,17 +332,50 @@
                     window.addEventListener('devicemotion', handleMotion);
                 }
             }
-            triggerMove(); 
+            // タップでも動作確認できるように1歩進める
+            const now = Date.now();
+            if (now - lastStepCountTime > STEP_COOLDOWN) {
+                triggerMove();
+                lastStepCountTime = now;
+            }
         });
 
+        // 万歩計のアルゴリズム（精度向上版）
         let lastX, lastY, lastZ;
         function handleMotion(e) {
-            let acc = e.accelerationIncludingGravity;
-            if (!acc) return;
-            if (lastX !== undefined) {
-                if (Math.abs(lastX - acc.x) > 6 || Math.abs(lastY - acc.y) > 6 || Math.abs(lastZ - acc.z) > 6) triggerMove();
+            let acc = e.acceleration; // 重力を除く加速度を優先取得
+            let accG = e.accelerationIncludingGravity;
+            let isStepDetected = false;
+
+            if (acc && acc.x !== null) {
+                // 加速度の大きさ（合成ベクトル）を計算
+                const magnitude = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+                // 閾値：軽く歩いた程度（1.8）で反応するように設定
+                if (magnitude > 1.8) {
+                    isStepDetected = true;
+                }
+            } else if (accG && accG.x !== null) {
+                // 重力込みのデータしか取れない場合の簡易判定
+                if (lastX !== undefined) {
+                    let deltaX = Math.abs(lastX - accG.x);
+                    let deltaY = Math.abs(lastY - accG.y);
+                    let deltaZ = Math.abs(lastZ - accG.z);
+                    if (deltaX > 3 || deltaY > 3 || deltaZ > 3) {
+                        isStepDetected = true;
+                    }
+                }
+                lastX = accG.x; lastY = accG.y; lastZ = accG.z;
             }
-            lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+
+            // 歩行と判定された場合
+            if (isStepDetected) {
+                const now = Date.now();
+                // 前回のカウントから一定時間（STEP_COOLDOWN）経過していないとカウントしない（チャタリング防止）
+                if (now - lastStepCountTime > STEP_COOLDOWN) {
+                    triggerMove();
+                    lastStepCountTime = now;
+                }
+            }
         }
 
         updateData();
