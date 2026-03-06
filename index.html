@@ -21,7 +21,6 @@
             color: #94a3b8;
         }
         
-        /* 縦スクロールする草むら背景 */
         .grass-bg {
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 100 Q 25 80 30 100 M70 100 Q 75 70 80 100 M45 100 Q 50 85 55 100' stroke='%23d1fae5' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
             background-size: 150px 150px;
@@ -30,7 +29,6 @@
         .grass-bg.paused { animation-play-state: paused; }
         @keyframes scrollBg { from { background-position: 0 -150px; } to { background-position: 0 0; } }
 
-        /* キャラクターの動き */
         @keyframes nyoki {
             0%   { transform: scale(1, 1) translateX(0); }
             30%  { transform: scale(1.15, 0.85) translateX(15px); }
@@ -40,20 +38,15 @@
         @keyframes breathe { 0% { transform: scale(1); } 50% { transform: scale(1.02, 0.98) translateY(2px); } 100% { transform: scale(1); } }
         @keyframes roll { 0% { transform: rotate(0deg) translateX(0); } 100% { transform: rotate(360deg) translateX(0); } }
         @keyframes yawn { 0% { transform: scale(1); } 50% { transform: scale(0.9, 1.1) translateY(-5px); } 100% { transform: scale(1); } }
-        
-        /* 専用シンボルのアニメーション */
-        @keyframes popSymbol {
-            0% { opacity: 0; transform: translateY(10px) scale(0.8); }
-            20% { opacity: 1; transform: translateY(-20px) scale(1.1); }
-            80% { opacity: 1; transform: translateY(-25px) scale(1); }
-            100% { opacity: 0; transform: translateY(-35px) scale(0.8); }
-        }
+        @keyframes floatSymbol { 0% { opacity: 0; transform: translateY(10px) scale(0.8); } 20% { opacity: 1; transform: translateY(-25px) scale(1.1); } 80% { opacity: 1; transform: translateY(-30px) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(0.8); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         .anim-breathe { animation: breathe 4s ease-in-out infinite; }
         .anim-walk { animation: nyoki 0.8s ease-in-out infinite; }
         .anim-roll { animation: roll 2s linear infinite; }
         .anim-yawn { animation: yawn 2s ease-in-out; }
-        .anim-symbol { animation: popSymbol 2s ease-in-out forwards; } /* アニメーション後に消える */
+        .anim-float { animation: floatSymbol 2.5s ease-in-out forwards; }
+        .anim-pulse { animation: pulse 2s ease-in-out infinite; }
 
         .hidden { display: none !important; }
         
@@ -88,7 +81,11 @@
         <div class="info-panel">
             <span class="text-[10px] font-bold text-slate-400 mb-1">今日の歩数</span>
             <div class="flex items-center gap-2 text-slate-500">
-                <span class="text-lg">🐾</span>
+                <!-- 専用の足跡アイコン -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="7" cy="11" r="2.5"/><circle cx="11" cy="7" r="2.5"/><circle cx="16" cy="8" r="2.5"/><circle cx="20" cy="12" r="2.5"/>
+                    <path d="M14 19c-2.5 0-5-1.5-5-4.5s2-5.5 5-5.5 5 2.5 5 5.5-2.5 4.5-5 4.5z"/>
+                </svg>
                 <span id="steps-display" class="text-2xl font-bold tracking-tighter">0</span>
             </div>
         </div>
@@ -102,38 +99,21 @@
                 </div>
             </div>
             <div class="bg-white/50 px-3 py-1.5 rounded-full flex items-center gap-1 border border-slate-200 shadow-sm">
-                <span class="text-[9px] font-bold text-slate-400">🎩 お店準備中...</span>
+                <span class="text-[9px] font-bold text-slate-400">おみせ準備中...</span>
             </div>
         </div>
     </header>
 
     <main class="flex-1 w-full flex justify-center items-center relative z-10">
         
-        <!-- === キャラクターのトーンに合わせた手書き風専用シンボル群 === -->
         <div id="symbol-container" class="absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none opacity-0 z-20">
-            <!-- 1. 音符 (ご機嫌・睡眠) #94a3b8 -->
-            <svg id="sym-note" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M 35 70 A 10 10 0 1 1 25 60 A 10 10 0 0 1 35 70 Z M 35 60 L 35 25 L 75 15 L 75 50" fill="#cbd5e1"/>
-                <path d="M 75 60 A 10 10 0 1 1 65 50 A 10 10 0 0 1 75 60 Z" fill="#cbd5e1"/>
-                <path d="M 35 40 L 75 30" />
-            </svg>
-            <!-- 2. 怒りマーク (不機嫌) #fca5a5 -->
-            <svg id="sym-angry" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#fca5a5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M 20 40 L 40 50 L 20 60 M 80 40 L 60 50 L 80 60 M 40 20 L 50 40 L 60 20 M 40 80 L 50 60 L 60 80" />
-            </svg>
-            <!-- 3. 汗 (疲れ・目回し) #bae6fd -->
-            <svg id="sym-sweat" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#bae6fd" stroke="#7dd3fc" stroke-width="4">
-                <path d="M 50 20 C 30 60 20 80 50 80 C 80 80 70 60 50 20 Z" />
-                <path d="M 30 30 C 20 50 15 65 30 65 C 45 65 40 50 30 30 Z" transform="scale(0.6) translate(-20, 30)" />
-            </svg>
-            <!-- 4. キラキラ (ハッピー) #fde047 -->
-            <svg id="sym-sparkle" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#fef08a" stroke="#fde047" stroke-width="4" stroke-linejoin="round">
-                <path d="M 50 10 Q 50 40 20 50 Q 50 60 50 90 Q 50 60 80 50 Q 50 40 50 10 Z" />
-                <path d="M 80 20 Q 80 30 70 35 Q 80 40 80 50 Q 80 40 90 35 Q 80 30 80 20 Z" />
-            </svg>
+            <!-- 記号シンボル群 -->
+            <svg id="sym-note" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"><path d="M 35 70 A 10 10 0 1 1 25 60 A 10 10 0 0 1 35 70 Z M 35 60 L 35 25 L 75 15 L 75 50" fill="#cbd5e1"/><path d="M 75 60 A 10 10 0 1 1 65 50 A 10 10 0 0 1 75 60 Z" fill="#cbd5e1"/><path d="M 35 40 L 75 30" /></svg>
+            <svg id="sym-angry" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#fca5a5" stroke-width="8" stroke-linecap="round"><path d="M 20 40 L 40 50 L 20 60 M 80 40 L 60 50 L 80 60 M 40 20 L 50 40 L 60 20 M 40 80 L 50 60 L 60 80" /></svg>
+            <svg id="sym-sweat" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#bae6fd" stroke="#7dd3fc" stroke-width="4"><path d="M 50 20 C 30 60 20 80 50 80 C 80 80 70 60 50 20 Z" /></svg>
+            <svg id="sym-sparkle" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#fef08a" stroke="#fde047" stroke-width="4"><path d="M 50 10 Q 50 40 20 50 Q 50 60 50 90 Q 50 60 80 50 Q 50 40 50 10 Z" /></svg>
         </div>
 
-        <!-- === キャラクター本体 === -->
         <div id="pet-container" class="anim-breathe origin-center mt-8">
             <svg width="300" height="200" viewBox="0 0 300 200">
                 <defs>
@@ -142,32 +122,25 @@
                         <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G" />
                     </filter>
                 </defs>
-                <!-- 画像に合わせた丸っこいグレーの体 -->
                 <ellipse cx="150" cy="110" rx="95" ry="85" fill="#cbd5e1" filter="url(#fluffy)" />
                 
-                <!-- 感情は目のシンプルな変化で表現 -->
-                <!-- 1. 通常（丸目） -->
                 <g id="face-normal" class="face hidden"><circle cx="105" cy="125" r="5.5" fill="#475569" /><circle cx="195" cy="125" r="5.5" fill="#475569" /></g>
-                <!-- 2. 睡眠（伏せ目） -->
                 <g id="face-sleep" class="face hidden"><path d="M 95 125 Q 105 120 115 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /><path d="M 185 125 Q 195 120 205 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /></g>
-                <!-- 3. ニッコリ（アーチ目） -->
                 <g id="face-happy" class="face hidden"><path d="M 95 125 Q 105 115 115 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /><path d="M 185 125 Q 195 115 205 125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" fill="none" /></g>
-                <!-- 4. ギュッ（細目/ボーッとする時や眩しい時） -->
                 <g id="face-squint" class="face hidden"><line x1="100" y1="125" x2="110" y2="125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" /><line x1="190" y1="125" x2="200" y2="125" stroke="#475569" stroke-width="4.5" stroke-linecap="round" /></g>
-                <!-- 5. びっくり（点目） -->
                 <g id="face-surprised" class="face hidden"><circle cx="105" cy="125" r="3" fill="#475569" /><circle cx="195" cy="125" r="3" fill="#475569" /></g>
             </svg>
         </div>
     </main>
 
     <footer class="w-full p-8 flex flex-col justify-center items-center z-10 pb-12">
-        <button id="btn-action" class="action-btn px-8 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
-            <span class="flex items-center gap-2">👣 ここをタップして出発！</span>
+        <button id="btn-action" class="action-btn anim-pulse px-8 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
+            <span>しゅっぱつ！</span>
+            <span class="text-[10px] font-normal opacity-90">スマホを持って歩こう</span>
         </button>
     </footer>
 
     <script>
-        // --- データ管理 ---
         const todayStr = new Date().toDateString();
         let savedDate = localStorage.getItem('petDate');
         let steps = parseInt(localStorage.getItem('petStepsNum')) || 0;
@@ -190,8 +163,6 @@
         };
 
         let lastMoveTime = Date.now();
-        let isSleepingTime = false;
-        let walkSpeedBuffer = [];
         let isWalking = false;
 
         function updateData() {
@@ -201,52 +172,36 @@
             localStorage.setItem('petCoinsNum', coins);
         }
 
-        // --- 感情表現（目と専用シンボルの組み合わせ） ---
         function setEmotion(faceId, animClass, symbolId = null) {
-            // 顔パーツ
             ui.faces.forEach(f => f.classList.add('hidden'));
             const faceEl = document.getElementById(`face-${faceId}`);
             if (faceEl) faceEl.classList.remove('hidden');
 
-            // 体のアニメ
-            ui.pet.className = 'origin-center mt-8'; // mt-8でシンボルのスペースを確保
+            ui.pet.className = 'origin-center mt-8';
             if (animClass) ui.pet.classList.add(animClass);
+            
+            ui.body.classList.toggle('paused', !(animClass === 'anim-walk' || animClass === 'anim-roll'));
 
-            // 背景スクロール
-            if (animClass === 'anim-walk' || animClass === 'anim-roll') {
-                ui.body.classList.remove('paused');
-            } else {
-                ui.body.classList.add('paused');
-            }
-
-            // 専用シンボルのアニメーション
             if (symbolId) {
                 ui.symbols.forEach(s => s.classList.add('hidden'));
                 const symEl = document.getElementById(`sym-${symbolId}`);
                 if (symEl) {
                     symEl.classList.remove('hidden');
-                    // アニメーション再起動
                     ui.symbolContainer.classList.remove('anim-symbol');
                     void ui.symbolContainer.offsetWidth; 
                     ui.symbolContainer.classList.add('anim-symbol');
                 }
-            } else {
-                // シンボル指定がない場合はアニメーションを消す
-                ui.symbolContainer.classList.remove('anim-symbol');
-                ui.symbolContainer.style.opacity = '0';
             }
         }
 
         function checkBaseState() {
             const hour = new Date().getHours();
-            isSleepingTime = (hour >= 23 || hour < 6);
             const idleTime = Date.now() - lastMoveTime;
-
-            if (isSleepingTime) {
+            if (hour >= 23 || hour < 6) {
                 if (idleTime > 5000) setEmotion('sleep', 'anim-breathe');
             } else {
-                if (idleTime > 30000) setEmotion('sleep', 'anim-yawn', 'note'); // 寝てる時は音符
-                else if (idleTime > 10000) setEmotion('squint', 'anim-breathe'); // ボーッと
+                if (idleTime > 30000) setEmotion('sleep', 'anim-yawn', 'note');
+                else if (idleTime > 10000) setEmotion('squint', 'anim-breathe');
                 else if (idleTime > 2000) setEmotion('normal', 'anim-breathe');
             }
         }
@@ -255,72 +210,39 @@
         function triggerMove() {
             lastMoveTime = Date.now();
             steps++;
-            
-            if (steps % 20 === 0) {
+            // 100歩ごとに1コインに変更
+            if (steps % 100 === 0) {
                 coins++;
-                updateData();
-                setEmotion('happy', 'anim-breathe', 'sparkle'); // コインGETでキラキラ
-                return;
+                setEmotion('happy', 'anim-breathe', 'sparkle');
             }
             updateData();
-
-            if (isSleepingTime) {
-                setEmotion('squint', 'anim-breathe', 'note'); // 寝起きの音符
-                return;
-            }
-
-            walkSpeedBuffer = walkSpeedBuffer.filter(t => lastMoveTime - t < 2000);
-            walkSpeedBuffer.push(lastMoveTime);
-            const speed = walkSpeedBuffer.length;
-
-            if (speed > 10) setEmotion('squint', 'anim-roll', 'sweat'); // 激しい→汗
-            else if (speed > 5) setEmotion('happy', 'anim-walk', 'note'); // 早歩き→音符
-            else setEmotion('normal', 'anim-walk'); // 通常
+            
+            const speed = 1; // 簡易化
+            if (steps % 10 === 0) setEmotion('normal', 'anim-walk');
         }
 
-        // タップした時の反応
-        ui.pet.addEventListener('click', () => {
-            lastMoveTime = Date.now();
-            if (isSleepingTime) {
-                setEmotion('squint', 'anim-breathe', 'angry'); // 寝てる時に触ると怒りマーク
-            } else {
-                const reactions = [
-                    {f: 'happy', a: 'anim-breathe', s: 'sparkle'}, 
-                    {f: 'happy', a: 'anim-breathe', s: 'note'}, 
-                    {f: 'surprised', a: 'anim-yawn', s: null}
-                ];
-                const r = reactions[Math.floor(Math.random() * reactions.length)];
-                setEmotion(r.f, r.a, r.s);
-            }
-        });
-
-        function startWalking() {
+        ui.btn.addEventListener('click', () => {
             if (!isWalking) {
                 ui.btn.classList.add('active-state');
-                ui.btn.innerHTML = `<span class="flex items-center gap-2 text-sm">👣 お散歩中...</span>`;
+                ui.btn.innerHTML = `<span>おさんぽ中...</span>`;
                 isWalking = true;
-
                 if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                    DeviceMotionEvent.requestPermission().then(state => {
-                        if (state === 'granted') window.addEventListener('devicemotion', handleMotion);
-                    }).catch(console.error);
+                    DeviceMotionEvent.requestPermission().then(s => {
+                        if (s === 'granted') window.addEventListener('devicemotion', handleMotion);
+                    });
                 } else {
                     window.addEventListener('devicemotion', handleMotion);
                 }
             }
             triggerMove(); 
-        }
-
-        ui.btn.addEventListener('click', startWalking);
+        });
 
         let lastX, lastY, lastZ;
         function handleMotion(e) {
             let acc = e.accelerationIncludingGravity;
             if (!acc) return;
             if (lastX !== undefined) {
-                if (Math.abs(lastX - acc.x) > 6 || Math.abs(lastY - acc.y) > 6 || Math.abs(lastZ - acc.z) > 6) {
-                    triggerMove();
-                }
+                if (Math.abs(lastX - acc.x) > 6 || Math.abs(lastY - acc.y) > 6 || Math.abs(lastZ - acc.z) > 6) triggerMove();
             }
             lastX = acc.x; lastY = acc.y; lastZ = acc.z;
         }
