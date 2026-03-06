@@ -7,247 +7,653 @@
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#ecfdf5">
+    <meta name="theme-color" content="#f0fdf4">
     
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700&family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --green-light: #dcfce7;
+            --green-mid:   #86efac;
+            --green-main:  #22c55e;
+            --green-dark:  #15803d;
+            --sage:        #d1fae5;
+            --cream:       #fefce8;
+            --sky:         #f0f9ff;
+            --text-main:   #1e293b;
+            --text-sub:    #64748b;
+            --text-pale:   #94a3b8;
+            --card-bg:     rgba(255,255,255,0.82);
+            --blur:        blur(18px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            overscroll-behavior-y: none;
-            background-color: #f2fbf6; 
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overscroll-behavior: none;
+            background: #f0fdf4;
+            font-family: 'Nunito', 'Zen Maru Gothic', sans-serif;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-            color: #64748b;
-        }
-        
-        .grass-bg {
-            background-image: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 30 90 Q 40 70 50 90 M 90 60 Q 95 45 100 60 M 60 110 Q 70 95 80 110' stroke='%23d1fae5' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-size: 150px 150px;
-            animation: scrollBg 3s linear infinite;
-        }
-        .grass-bg.paused { animation-play-state: paused; }
-        @keyframes scrollBg { from { background-position: 0 -150px; } to { background-position: 0 0; } }
-
-        /* --- モーション定義 --- */
-        @keyframes walk-bounce {
-            0%   { transform: translateY(0) scale(1, 1); }
-            50%  { transform: translateY(-10px) scale(0.98, 1.02); }
-            100% { transform: translateY(0) scale(1, 1); }
-        }
-        @keyframes breathe { 
-            0% { transform: scale(1); } 
-            50% { transform: scale(1.02, 0.98) translateY(2px); } 
-            100% { transform: scale(1); } 
-        }
-        @keyframes happy-bounce {
-            0% { transform: translateY(0) scale(1); }
-            30% { transform: translateY(-15px) scale(0.95, 1.05); }
-            50% { transform: translateY(0) scale(1.05, 0.95); }
-            70% { transform: translateY(-8px) scale(0.98, 1.02); }
-            100% { transform: translateY(0) scale(1); }
-        }
-        @keyframes koron {
-            0% { transform: rotate(0deg) translateY(0); }
-            40% { transform: rotate(-20deg) translateY(-15px); }
-            70% { transform: rotate(200deg) translateY(-20px); }
-            100% { transform: rotate(360deg) translateY(0); }
-        }
-        @keyframes floatSymbol { 
-            0% { opacity: 0; transform: translateY(5px) scale(0.8); } 
-            20% { opacity: 1; transform: translateY(-20px) scale(1.1); } 
-            80% { opacity: 1; transform: translateY(-25px) scale(1); } 
-            100% { opacity: 0; transform: translateY(-35px) scale(0.8); } 
-        }
-        @keyframes eye-blink {
-            0%, 94%, 98%, 100% { transform: scaleY(1); }
-            96% { transform: scaleY(0.1); }
-        }
-
-        .anim-breathe { animation: breathe 4s ease-in-out infinite; }
-        .anim-walk { animation: walk-bounce 0.6s ease-in-out infinite; }
-        .anim-happy { animation: happy-bounce 0.8s ease-in-out; }
-        .anim-koron { animation: koron 1.2s ease-in-out forwards; }
-        .anim-float { animation: floatSymbol 2s ease-in-out forwards; }
-        
-        .eye-blink { 
-            animation: eye-blink 6s infinite; 
-            transform-origin: 150px 110px; 
-        }
-
-        .hidden { display: none !important; }
-        
-        /* UIパーツ */
-        .info-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 10px 20px;
-            box-shadow: 0 8px 16px rgba(0, 100, 50, 0.04);
+            color: var(--text-main);
+            height: 100svh;
+            width: 100vw;
             display: flex;
             flex-direction: column;
             align-items: center;
-            border: 1px solid rgba(255,255,255,0.5);
+            overflow: hidden;
+            position: relative;
         }
 
-        .action-btn {
-            background: #ffffff;
-            color: #10b981;
-            border: 2px solid #10b981;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* ========== 背景 ========== */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
         }
-        .action-btn.active-state {
-            background: #10b981;
+        .bg-sky {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(170deg, #e0f2fe 0%, #f0fdf4 55%, #dcfce7 100%);
+        }
+        /* 浮かぶ雲 */
+        .cloud {
+            position: absolute;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.7);
+            filter: blur(2px);
+            animation: driftCloud linear infinite;
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: inherit;
+        }
+        .c1 { width: 90px; height: 30px; top: 12%; left: -100px; animation-duration: 28s; animation-delay: 0s; }
+        .c1::before { width: 40px; height: 40px; top: -15px; left: 15px; }
+        .c1::after  { width: 30px; height: 30px; top: -10px; left: 45px; }
+        .c2 { width: 60px; height: 20px; top: 22%; left: -80px; animation-duration: 36s; animation-delay: -12s; opacity: 0.6; }
+        .c2::before { width: 28px; height: 28px; top: -12px; left: 10px; }
+        .c3 { width: 110px; height: 35px; top: 8%; left: -130px; animation-duration: 42s; animation-delay: -20s; opacity: 0.5; }
+        .c3::before { width: 50px; height: 50px; top: -20px; left: 20px; }
+        .c3::after  { width: 35px; height: 35px; top: -12px; left: 60px; }
+
+        @keyframes driftCloud {
+            from { transform: translateX(0); }
+            to   { transform: translateX(calc(100vw + 200px)); }
+        }
+
+        /* 草 */
+        .grass-row {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            overflow: hidden;
+        }
+        .grass-svg {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            animation: scrollGrass 3s linear infinite;
+        }
+        .grass-svg.paused { animation-play-state: paused; }
+        @keyframes scrollGrass {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        /* 地面 */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(to bottom, #86efac, #4ade80);
+            border-radius: 50% 50% 0 0 / 20px 20px 0 0;
+        }
+        .ground-path {
+            position: absolute;
+            bottom: 10px;
+            left: 10%;
+            width: 80%;
+            height: 12px;
+            background: rgba(255,255,255,0.35);
+            border-radius: 20px;
+            animation: scrollPath 1s linear infinite;
+        }
+        .ground-path.paused { animation-play-state: paused; }
+        @keyframes scrollPath {
+            from { background-position: 0 0; }
+            to   { background-position: 40px 0; }
+        }
+
+        /* ========== カード UI ========== */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.75);
+            box-shadow: 0 4px 24px rgba(34,197,94,0.08), 0 1px 4px rgba(0,0,0,0.04);
+        }
+
+        /* ========== ヘッダー ========== */
+        header {
+            width: 100%;
+            padding: 16px 18px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+            position: relative;
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 18px 10px;
+            gap: 2px;
+            min-width: 100px;
+        }
+        .stat-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--text-pale);
+            text-transform: uppercase;
+        }
+        .stat-value-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-icon { font-size: 18px; line-height: 1; }
+        .stat-number {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-main);
+            font-family: 'Nunito', sans-serif;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .shop-badge {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-pale);
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.65);
+            border: 1px solid rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            margin-top: 6px;
+        }
+
+        /* ========== メイン（キャラクター） ========== */
+        main {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* 感情シンボル */
+        #symbol-container {
+            position: absolute;
+            top: 2%;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 20;
+        }
+        #symbol-container.float { animation: floatSymbol 2s ease-in-out forwards; }
+        @keyframes floatSymbol {
+            0%   { opacity: 0; transform: translateY(5px) scale(0.8); }
+            20%  { opacity: 1; transform: translateY(-18px) scale(1.1); }
+            80%  { opacity: 1; transform: translateY(-24px) scale(1); }
+            100% { opacity: 0; transform: translateY(-34px) scale(0.8); }
+        }
+
+        /* キャラクター */
+        #pet-container {
+            cursor: pointer;
+            position: relative;
+            margin-top: -20px;
+            filter: drop-shadow(0 18px 14px rgba(0,0,0,0.06));
+            transform-origin: center bottom;
+        }
+
+        /* ========== アニメーション ========== */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50%       { transform: scale(1.015, 0.985) translateY(2px); }
+        }
+        @keyframes walkBounce {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            40%       { transform: translateY(-9px) scale(0.97, 1.03); }
+        }
+        @keyframes happyBounce {
+            0%   { transform: translateY(0) scale(1); }
+            25%  { transform: translateY(-18px) scale(0.94, 1.06); }
+            50%  { transform: translateY(0) scale(1.06, 0.94); }
+            70%  { transform: translateY(-9px) scale(0.97, 1.03); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        @keyframes koron {
+            0%   { transform: rotate(0deg) translateY(0); }
+            40%  { transform: rotate(-18deg) translateY(-14px); }
+            70%  { transform: rotate(195deg) translateY(-18px); }
+            100% { transform: rotate(360deg) translateY(0); }
+        }
+        @keyframes eyeBlink {
+            0%, 93%, 97%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.08); }
+        }
+
+        .anim-breathe { animation: breathe 4.5s ease-in-out infinite; }
+        .anim-walk    { animation: walkBounce 0.55s ease-in-out infinite; }
+        .anim-happy   { animation: happyBounce 0.85s ease-in-out; }
+        .anim-koron   { animation: koron 1.2s ease-in-out forwards; }
+
+        .eye-blink {
+            animation: eyeBlink 7s infinite;
+            transform-origin: 150px 115px;
+        }
+
+        /* ========== フッター ========== */
+        footer {
+            width: 100%;
+            padding: 10px 24px 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* ステータスバー（空腹/体力） */
+        .status-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 320px;
+        }
+        .status-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .status-item-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-pale);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-bar-bg {
+            height: 7px;
+            border-radius: 99px;
+            background: rgba(0,0,0,0.07);
+            overflow: hidden;
+        }
+        .status-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .fill-green  { background: linear-gradient(90deg, #4ade80, #22c55e); }
+        .fill-yellow { background: linear-gradient(90deg, #fde047, #f59e0b); }
+
+        /* アクションボタン */
+        #btn-action {
+            width: 100%;
+            max-width: 320px;
+            padding: 18px 24px;
+            border-radius: 999px;
+            border: none;
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            background: linear-gradient(135deg, #34d399, #22c55e 60%, #16a34a);
             color: #ffffff;
-            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-            border-color: transparent;
+            box-shadow: 0 6px 28px rgba(34,197,94,0.35), 0 2px 6px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        #btn-action::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+            border-radius: inherit;
+        }
+        #btn-action:active {
+            transform: scale(0.97);
+            box-shadow: 0 3px 14px rgba(34,197,94,0.3);
+        }
+        #btn-action.walking {
+            background: linear-gradient(135deg, #a3e635, #4ade80 60%, #22c55e);
+            box-shadow: 0 6px 28px rgba(74,222,128,0.35), 0 2px 6px rgba(74,222,128,0.2), inset 0 1px 0 rgba(255,255,255,0.3);
+            animation: btnPulse 2s ease-in-out infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { box-shadow: 0 6px 28px rgba(74,222,128,0.35), 0 2px 6px rgba(74,222,128,0.2), inset 0 1px 0 rgba(255,255,255,0.3); }
+            50% { box-shadow: 0 8px 36px rgba(74,222,128,0.5), 0 2px 8px rgba(74,222,128,0.25), inset 0 1px 0 rgba(255,255,255,0.3); }
+        }
+        .btn-sub {
+            font-size: 10px;
+            font-weight: 400;
+            opacity: 0.8;
+            font-family: 'Nunito', sans-serif;
+            letter-spacing: 0.04em;
         }
 
-        #pet-body, #pet-belly, #pet-eyes {
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        .pet-shadow {
-            filter: drop-shadow(0px 15px 10px rgba(0,0,0,0.06));
-        }
-
+        /* ========== 選択モーダル ========== */
         #selection-modal {
-            background: rgba(242, 251, 246, 0.98);
-            backdrop-filter: blur(12px);
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+        #selection-modal.hidden { display: none !important; }
+
+        .modal-title {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            letter-spacing: 0.04em;
+        }
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.85;
+            text-align: center;
+            max-width: 280px;
+            margin: 0 auto 32px;
+        }
+        .pet-cards {
+            display: flex;
+            gap: 16px;
+            padding: 0 24px;
+            width: 100%;
+            max-width: 380px;
         }
         .pet-card {
+            flex: 1;
             background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
+            border-radius: 28px;
+            padding: 24px 12px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+            border: 2px solid transparent;
+            transition: all 0.25s ease;
         }
-        .pet-card:active { transform: scale(0.95); }
+        .pet-card:active {
+            transform: scale(0.95);
+            border-color: var(--green-main);
+        }
+        .pet-card-name {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .pet-card-name.silver { color: #64748b; }
+        .pet-card-name.gold   { color: #d97706; }
+
+        .modal-warning {
+            margin-top: 24px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #f87171;
+            letter-spacing: 0.04em;
+        }
+
+        /* ========== ユーティリティ ========== */
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="grass-bg paused h-screen w-screen flex flex-col items-center justify-between overflow-hidden relative">
+<body>
 
-    <!-- === 相棒選択モーダル === -->
-    <div id="selection-modal" class="absolute inset-0 z-50 flex flex-col items-center justify-center hidden">
-        <div class="text-center px-6 mb-8">
-            <h1 class="text-2xl font-bold text-slate-700 mb-4 tracking-wide">どの子とお散歩する？</h1>
-            <p class="text-sm text-slate-600 leading-relaxed font-medium">
-                生き物だから、ずっと一緒にいたい子を選んで。<br>
-                この子達はスマホの中でしか生きられません。<br>
-                忘れずに一緒に過ごしてあげてね。
-            </p>
+    <!-- 背景レイヤー -->
+    <div class="bg-layer">
+        <div class="bg-sky"></div>
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+
+        <div class="grass-row">
+            <svg id="grass-svg" class="grass-svg paused" viewBox="0 0 800 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- 草むら（左半分＋右半分を繰り返す） -->
+                <rect width="800" height="100" fill="#4ade80"/>
+                <!-- 奥の草 -->
+                <path d="M10 90 Q20 60 30 90 M50 85 Q58 58 66 85 M90 88 Q98 62 106 88
+                         M130 90 Q138 55 146 90 M165 86 Q173 60 181 86 M200 88 Q210 62 220 88
+                         M240 90 Q250 58 260 90 M280 85 Q288 55 296 85 M315 88 Q323 62 331 88
+                         M350 90 Q360 60 370 90 M390 86 Q398 55 406 86 M420 88 Q430 62 440 88
+                         M455 90 Q465 58 475 90 M490 85 Q500 55 510 85 M525 88 Q535 62 545 88
+                         M560 90 Q570 60 580 90 M595 86 Q603 55 611 86 M625 88 Q635 62 645 88
+                         M660 90 Q670 58 680 90 M695 85 Q705 55 715 85 M730 88 Q740 62 750 88
+                         M760 90 Q770 60 780 90"
+                      stroke="#86efac" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.8"/>
+                <!-- 手前の草 -->
+                <path d="M20 100 Q28 70 36 100 M70 100 Q78 65 86 100 M115 100 Q122 68 129 100
+                         M155 100 Q162 72 169 100 M200 100 Q208 66 216 100 M245 100 Q252 70 259 100
+                         M290 100 Q297 65 304 100 M330 100 Q338 68 346 100 M375 100 Q382 72 389 100
+                         M415 100 Q422 66 429 100 M460 100 Q468 70 476 100 M505 100 Q512 65 519 100
+                         M545 100 Q553 68 561 100 M585 100 Q593 72 601 100 M625 100 Q632 66 639 100
+                         M660 100 Q668 70 676 100 M700 100 Q708 65 716 100 M740 100 Q748 68 756 100
+                         M775 100 Q783 72 791 100"
+                      stroke="#22c55e" stroke-width="6" fill="none" stroke-linecap="round"/>
+            </svg>
         </div>
-        
-        <div class="flex gap-6 w-full px-8 justify-center">
-            <div class="pet-card flex-1 flex flex-col items-center p-6 cursor-pointer" onclick="selectPet('silver')">
-                <svg width="120" height="100" viewBox="0 0 300 240" class="mb-4 pointer-events-none">
-                    <defs>
-                        <radialGradient id="grad-silver-prev" cx="40%" cy="30%" r="70%">
-                            <stop offset="0%" stop-color="#f8fafc" />
-                            <stop offset="60%" stop-color="#cbd5e1" />
-                            <stop offset="100%" stop-color="#94a3b8" />
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="150" cy="120" rx="95" ry="95" fill="url(#grad-silver-prev)" filter="url(#fluffy)" />
-                    <circle cx="105" cy="130" r="5" fill="#334155" />
-                    <circle cx="195" cy="130" r="5" fill="#334155" />
-                </svg>
-                <span class="font-bold text-slate-600">シルバー</span>
-            </div>
-            <div class="pet-card flex-1 flex flex-col items-center p-6 cursor-pointer" onclick="selectPet('gold')">
-                <svg width="120" height="100" viewBox="0 0 300 240" class="mb-4 pointer-events-none">
-                    <defs>
-                        <radialGradient id="grad-gold-prev" cx="40%" cy="30%" r="70%">
-                            <stop offset="0%" stop-color="#fef9c3" />
-                            <stop offset="60%" stop-color="#fde047" />
-                            <stop offset="100%" stop-color="#eab308" />
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="150" cy="120" rx="95" ry="95" fill="url(#grad-gold-prev)" filter="url(#fluffy)" />
-                    <circle cx="105" cy="130" r="5" fill="#451a03" />
-                    <circle cx="195" cy="130" r="5" fill="#451a03" />
-                </svg>
-                <span class="font-bold text-amber-600">ゴールド</span>
-            </div>
-        </div>
-        <p class="text-xs text-rose-400 font-bold mt-8">※あとから変更できません</p>
+        <div class="ground"></div>
+        <div id="ground-path" class="ground-path paused"
+             style="background: repeating-linear-gradient(90deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 16px, transparent 16px, transparent 32px);"></div>
     </div>
 
-    <!-- ヘッダー -->
-    <header class="w-full p-6 flex justify-between items-start z-10">
-        <div class="info-panel">
-            <span class="text-[10px] font-bold text-slate-400 mb-1 tracking-wide">今日の歩数</span>
-            <div class="flex items-center gap-2 text-slate-600">
-                <span class="text-xl">🐾</span>
-                <span id="steps-display" class="text-3xl font-extrabold tracking-tighter">0</span>
+    <!-- ========== 相棒選択モーダル ========== -->
+    <div id="selection-modal">
+        <p class="modal-title">どの子とお散歩する？</p>
+        <p class="modal-desc">
+            生き物だから、ずっと一緒にいたい子を選んで。<br>
+            この子達はスマホの中でしか生きられません。<br>
+            忘れずに一緒に過ごしてあげてね。
+        </p>
+
+        <div class="pet-cards">
+            <!-- シルバー -->
+            <div class="pet-card" onclick="selectPet('silver')">
+                <svg width="110" height="95" viewBox="0 0 300 240">
+                    <defs>
+                        <radialGradient id="gs-modal" cx="38%" cy="28%" r="70%">
+                            <stop offset="0%"   stop-color="#f8fafc"/>
+                            <stop offset="55%"  stop-color="#cbd5e1"/>
+                            <stop offset="100%" stop-color="#94a3b8"/>
+                        </radialGradient>
+                        <filter id="fluffy-m" x="-15%" y="-15%" width="130%" height="130%">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="3" result="noise"/>
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+                        </filter>
+                    </defs>
+                    <ellipse cx="150" cy="120" rx="90" ry="90" fill="url(#gs-modal)" filter="url(#fluffy-m)"/>
+                    <circle cx="112" cy="128" r="5" fill="#334155"/>
+                    <circle cx="188" cy="128" r="5" fill="#334155"/>
+                </svg>
+                <span class="pet-card-name silver">シルバー</span>
+            </div>
+            <!-- ゴールド -->
+            <div class="pet-card" onclick="selectPet('gold')">
+                <svg width="110" height="95" viewBox="0 0 300 240">
+                    <defs>
+                        <radialGradient id="gg-modal" cx="38%" cy="28%" r="70%">
+                            <stop offset="0%"   stop-color="#fef9c3"/>
+                            <stop offset="55%"  stop-color="#fde047"/>
+                            <stop offset="100%" stop-color="#eab308"/>
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="150" cy="120" rx="90" ry="90" fill="url(#gg-modal)" filter="url(#fluffy-m)"/>
+                    <circle cx="112" cy="128" r="5" fill="#451a03"/>
+                    <circle cx="188" cy="128" r="5" fill="#451a03"/>
+                </svg>
+                <span class="pet-card-name gold">ゴールド</span>
             </div>
         </div>
 
-        <div class="flex flex-col items-end gap-2">
-            <div class="info-panel">
-                <span class="text-[10px] font-bold text-slate-400 mb-1 tracking-wide">あつめたコイン</span>
-                <div class="flex items-center gap-2 text-slate-600">
-                    <svg class="w-5 h-5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" stroke="#fbbf24" stroke-width="2" fill="#fde047"/><circle cx="12" cy="12" r="6" stroke="#fbbf24" stroke-width="1" fill="none"/><path d="M12 7v10" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/></svg>
-                    <span id="coins-display" class="text-2xl font-extrabold tracking-tighter">0</span>
+        <p class="modal-warning">※ あとから変更できません</p>
+    </div>
+
+    <!-- ========== ヘッダー ========== -->
+    <header>
+        <!-- 歩数 -->
+        <div class="glass-card stat-card">
+            <span class="stat-label">今日の歩数</span>
+            <div class="stat-value-row">
+                <span class="stat-icon">🐾</span>
+                <span id="steps-display" class="stat-number">0</span>
+            </div>
+        </div>
+
+        <!-- コイン＋お店 -->
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+            <div class="glass-card stat-card">
+                <span class="stat-label">あつめたコイン</span>
+                <div class="stat-value-row">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#fde047" stroke="#fbbf24" stroke-width="1.5"/>
+                        <circle cx="12" cy="12" r="5.5" stroke="#fbbf24" stroke-width="1" fill="none" opacity="0.6"/>
+                        <path d="M12 7.5v9" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span id="coins-display" class="stat-number">0</span>
                 </div>
             </div>
-            <div class="bg-white/70 px-4 py-2 rounded-full flex items-center gap-1 border border-slate-100 shadow-sm backdrop-blur-sm">
-                <span class="text-[10px] font-bold text-slate-400 tracking-wide">🎩 お店準備中...</span>
-            </div>
+            <div class="shop-badge">🎩 お店 準備中...</div>
         </div>
     </header>
 
-    <main class="flex-1 w-full flex justify-center items-center relative z-10">
-        
+    <!-- ========== メイン（キャラクター） ========== -->
+    <main>
         <!-- 感情シンボル -->
-        <div id="symbol-container" class="absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none opacity-0 z-20">
-            <svg id="sym-note" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="none" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"><path d="M 35 70 A 10 10 0 1 1 25 60 A 10 10 0 0 1 35 70 Z M 35 60 L 35 25 L 75 15 L 75 50" fill="#cbd5e1"/><path d="M 75 60 A 10 10 0 1 1 65 50 A 10 10 0 0 1 75 60 Z" fill="#cbd5e1"/><path d="M 35 40 L 75 30" /></svg>
-            <svg id="sym-sparkle" class="hidden w-16 h-16" viewBox="0 0 100 100" fill="#fef08a" stroke="#fde047" stroke-width="4"><path d="M 50 10 Q 50 40 20 50 Q 50 60 50 90 Q 50 60 80 50 Q 50 40 50 10 Z" /></svg>
+        <div id="symbol-container">
+            <svg id="sym-note" class="hidden" width="56" height="56" viewBox="0 0 100 100" fill="none">
+                <path d="M 35 68 A 11 11 0 1 1 24 57 A 11 11 0 0 1 35 68 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="4"/>
+                <path d="M 35 58 L 35 23 L 76 13 L 76 48" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" fill="none"/>
+                <path d="M 76 58 A 11 11 0 1 1 65 47 A 11 11 0 0 1 76 58 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="4"/>
+                <path d="M 35 38 L 76 28" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+            </svg>
+            <svg id="sym-sparkle" class="hidden" width="56" height="56" viewBox="0 0 100 100">
+                <path d="M 50 8 Q 50 40 18 50 Q 50 60 50 92 Q 50 60 82 50 Q 50 40 50 8 Z" fill="#fef08a" stroke="#fde047" stroke-width="3"/>
+                <path d="M 28 28 Q 34 40 28 50" stroke="#fde047" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+                <path d="M 72 28 Q 66 40 72 50" stroke="#fde047" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+            </svg>
+            <svg id="sym-zzz" class="hidden" width="56" height="56" viewBox="0 0 100 100">
+                <text x="10" y="55" font-size="28" fill="#94a3b8" font-weight="bold" font-family="serif">z</text>
+                <text x="36" y="40" font-size="20" fill="#94a3b8" font-weight="bold" font-family="serif" opacity="0.7">z</text>
+                <text x="56" y="28" font-size="14" fill="#94a3b8" font-weight="bold" font-family="serif" opacity="0.5">z</text>
+            </svg>
         </div>
 
-        <!-- キャラクター本体 -->
-        <div id="pet-container" class="anim-breathe origin-center mt-12 pet-shadow cursor-pointer">
-            <svg width="300" height="240" viewBox="0 0 300 240">
+        <!-- キャラクター本体 SVG -->
+        <div id="pet-container" class="anim-breathe">
+            <svg id="pet-svg" width="280" height="230" viewBox="0 0 300 240">
                 <defs>
+                    <!-- ふわふわフィルタ -->
                     <filter id="fluffy" x="-20%" y="-20%" width="140%" height="140%">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="3" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+                        <feTurbulence type="fractalNoise" baseFrequency="0.11" numOctaves="3" result="noise"/>
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G"/>
                     </filter>
-                    
-                    <radialGradient id="bodyGrad-silver" cx="40%" cy="30%" r="70%">
-                        <stop offset="0%" stop-color="#f8fafc" />
-                        <stop offset="60%" stop-color="#cbd5e1" />
-                        <stop offset="100%" stop-color="#94a3b8" />
+                    <!-- シルバーグラデ -->
+                    <radialGradient id="bodyGrad-silver" cx="38%" cy="28%" r="70%">
+                        <stop offset="0%"   stop-color="#f8fafc"/>
+                        <stop offset="55%"  stop-color="#cbd5e1"/>
+                        <stop offset="100%" stop-color="#94a3b8"/>
                     </radialGradient>
-                    <radialGradient id="bodyGrad-gold" cx="40%" cy="30%" r="70%">
-                        <stop offset="0%" stop-color="#fef9c3" />
-                        <stop offset="60%" stop-color="#fde047" />
-                        <stop offset="100%" stop-color="#eab308" />
+                    <!-- ゴールドグラデ -->
+                    <radialGradient id="bodyGrad-gold" cx="38%" cy="28%" r="70%">
+                        <stop offset="0%"   stop-color="#fef9c3"/>
+                        <stop offset="55%"  stop-color="#fde047"/>
+                        <stop offset="100%" stop-color="#eab308"/>
                     </radialGradient>
-                    
-                    <radialGradient id="bellyGrad" cx="50%" cy="35%" r="65%">
-                        <stop offset="0%" stop-color="#ffffff" />
-                        <stop offset="70%" stop-color="#f8fafc" />
-                        <stop offset="100%" stop-color="#e2e8f0" />
+                    <!-- お腹のグラデ -->
+                    <radialGradient id="bellyGrad" cx="50%" cy="38%" r="65%">
+                        <stop offset="0%"   stop-color="#ffffff"/>
+                        <stop offset="65%"  stop-color="#f8fafc"/>
+                        <stop offset="100%" stop-color="#e2e8f0"/>
+                    </radialGradient>
+                    <!-- 影グラデ（地面に落ちる影） -->
+                    <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%"   stop-color="rgba(0,0,0,0.12)"/>
+                        <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
                     </radialGradient>
                 </defs>
-                
-                <!-- 体のベース（グレーやゴールドの背中） -->
-                <ellipse id="pet-body" cx="150" cy="120" rx="95" ry="95" fill="url(#bodyGrad-silver)" filter="url(#fluffy)" />
-                
-                <!-- コロン時の白いお腹（少し上にずらして下側にベースの色を見せる） -->
-                <ellipse id="pet-belly" cx="150" cy="110" rx="84" ry="76" fill="url(#bellyGrad)" filter="url(#fluffy)" opacity="0" />
-                
-                <!-- 目線は常に少し斜め上 -->
-                <g id="pet-eyes" transform="translate(0, -12)">
+
+                <!-- 地面の影 -->
+                <ellipse cx="150" cy="222" rx="75" ry="10" fill="url(#shadowGrad)"/>
+
+                <!-- お腹（左向き・右向き・仰向けのみ表示） -->
+                <ellipse id="pet-belly"
+                    cx="150" cy="115" rx="80" ry="72"
+                    fill="url(#bellyGrad)" filter="url(#fluffy)"
+                    opacity="0"/>
+
+                <!-- 体のベース -->
+                <ellipse id="pet-body"
+                    cx="150" cy="118" rx="92" ry="92"
+                    fill="url(#bodyGrad-silver)" filter="url(#fluffy)"/>
+
+                <!-- 目・表情グループ -->
+                <g id="pet-eyes" transform="translate(0, -10)">
                     <g id="eyes-inner" class="eye-blink">
+                        <!-- 通常の目 -->
                         <g id="face-normal">
-                            <circle cx="105" cy="125" r="4.5" fill="#334155" class="eye-color" />
-                            <circle cx="195" cy="125" r="4.5" fill="#334155" class="eye-color" />
+                            <circle cx="112" cy="125" r="5" fill="#334155" class="eye-color"/>
+                            <circle cx="188" cy="125" r="5" fill="#334155" class="eye-color"/>
+                            <!-- 瞳のハイライト -->
+                            <circle cx="114" cy="123" r="1.8" fill="rgba(255,255,255,0.7)" class="eye-highlight"/>
+                            <circle cx="190" cy="123" r="1.8" fill="rgba(255,255,255,0.7)" class="eye-highlight"/>
                         </g>
+                        <!-- スマイル顔 -->
                         <g id="face-smile" class="hidden">
-                            <path d="M 98 125 Q 105 132 112 125" stroke="#334155" stroke-width="4" stroke-linecap="round" fill="none" class="eye-stroke" />
-                            <path d="M 188 125 Q 195 132 202 125" stroke="#334155" stroke-width="4" stroke-linecap="round" fill="none" class="eye-stroke" />
+                            <path d="M 104 126 Q 112 134 120 126" stroke="#334155" stroke-width="4.5" stroke-linecap="round" fill="none" class="eye-stroke"/>
+                            <path d="M 180 126 Q 188 134 196 126" stroke="#334155" stroke-width="4.5" stroke-linecap="round" fill="none" class="eye-stroke"/>
+                        </g>
+                        <!-- ねむい顔（仰向け） -->
+                        <g id="face-sleep" class="hidden">
+                            <path d="M 106 126 Q 112 120 118 126" stroke="#334155" stroke-width="4" stroke-linecap="round" fill="none" class="eye-stroke" opacity="0.5"/>
+                            <path d="M 182 126 Q 188 120 194 126" stroke="#334155" stroke-width="4" stroke-linecap="round" fill="none" class="eye-stroke" opacity="0.5"/>
                         </g>
                     </g>
                 </g>
@@ -255,333 +661,399 @@
         </div>
     </main>
 
-    <footer class="w-full p-8 flex flex-col justify-center items-center z-10 pb-12">
-        <button id="btn-action" class="action-btn px-10 py-5 rounded-full font-bold text-lg flex flex-col items-center justify-center gap-1 w-[85%] max-w-[300px]">
-            <span class="tracking-widest">しゅっぱつ！</span>
-            <span class="text-[10px] font-normal opacity-80">スマホを持って歩こう</span>
+    <!-- ========== フッター ========== -->
+    <footer>
+        <!-- ステータスバー -->
+        <div class="status-row">
+            <div class="status-item">
+                <span class="status-item-label">
+                    <span>🍀</span> 元気
+                </span>
+                <div class="status-bar-bg">
+                    <div id="bar-health" class="status-bar-fill fill-green" style="width: 80%"></div>
+                </div>
+            </div>
+            <div class="status-item">
+                <span class="status-item-label">
+                    <span>🌾</span> おなか
+                </span>
+                <div class="status-bar-bg">
+                    <div id="bar-hunger" class="status-bar-fill fill-yellow" style="width: 70%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- アクションボタン -->
+        <button id="btn-action">
+            <span class="btn-main-text" style="font-family:'Zen Maru Gothic',sans-serif;font-size:17px;font-weight:700;letter-spacing:0.12em;">しゅっぱつ！</span>
+            <span class="btn-sub">スマホを持って歩こう</span>
         </button>
     </footer>
 
     <script>
-        // --- データ管理 ---
-        const todayStr = new Date().toDateString();
-        let savedDate = localStorage.getItem('petDate');
-        let steps = parseInt(localStorage.getItem('petStepsNum')) || 0;
-        let coins = parseInt(localStorage.getItem('petCoinsNum')) || 0;
-        let selectedColor = localStorage.getItem('petColor'); 
+    // ================================================================
+    // データ管理
+    // ================================================================
+    const STEP_COOLDOWN = 350;
+    const todayStr = new Date().toDateString();
+    let savedDate = localStorage.getItem('petDate');
 
-        if (savedDate !== todayStr) {
-            steps = 0;
-            localStorage.setItem('petDate', todayStr);
+    let steps     = parseInt(localStorage.getItem('petStepsNum')) || 0;
+    let coins     = parseInt(localStorage.getItem('petCoinsNum')) || 0;
+    let selectedColor = localStorage.getItem('petColor');
+
+    // 日付変わったらリセット
+    if (savedDate !== todayStr) {
+        steps = 0;
+        localStorage.setItem('petDate', todayStr);
+    }
+
+    // ================================================================
+    // UI参照
+    // ================================================================
+    const ui = {
+        body:        document.body,
+        steps:       document.getElementById('steps-display'),
+        coins:       document.getElementById('coins-display'),
+        petContainer:document.getElementById('pet-container'),
+        petBody:     document.getElementById('pet-body'),
+        petBelly:    document.getElementById('pet-belly'),
+        petEyes:     document.getElementById('pet-eyes'),
+        eyesInner:   document.getElementById('eyes-inner'),
+        symbolCont:  document.getElementById('symbol-container'),
+        symbols:     document.querySelectorAll('#symbol-container svg'),
+        btn:         document.getElementById('btn-action'),
+        faces:       document.querySelectorAll('#eyes-inner > g'),
+        modal:       document.getElementById('selection-modal'),
+        grassSvg:    document.getElementById('grass-svg'),
+        groundPath:  document.getElementById('ground-path'),
+        barHealth:   document.getElementById('bar-health'),
+        barHunger:   document.getElementById('bar-hunger'),
+    };
+
+    // ================================================================
+    // カラーテーマ
+    // ================================================================
+    function applyColorTheme(color) {
+        const bodyFill = color === 'gold' ? 'url(#bodyGrad-gold)' : 'url(#bodyGrad-silver)';
+        const eyeColor = color === 'gold' ? '#451a03' : '#334155';
+        ui.petBody.setAttribute('fill', bodyFill);
+        document.querySelectorAll('.eye-color').forEach(el => el.setAttribute('fill', eyeColor));
+        document.querySelectorAll('.eye-stroke').forEach(el => el.setAttribute('stroke', eyeColor));
+    }
+
+    function selectPet(color) {
+        selectedColor = color;
+        localStorage.setItem('petColor', color);
+        applyColorTheme(color);
+        ui.modal.classList.add('hidden');
+        lastMoveTime = Date.now();
+    }
+
+    if (!selectedColor) {
+        ui.modal.classList.remove('hidden');
+    } else {
+        ui.modal.classList.add('hidden');
+        applyColorTheme(selectedColor);
+    }
+
+    // ================================================================
+    // 状態変数
+    // ================================================================
+    let lastMoveTime      = Date.now();
+    let isWalking         = false;
+    let isLeftFoot        = false;
+    let isAnimating       = false;
+    let currentState      = 'front';
+    let lastStepCountTime = 0;
+
+    // ================================================================
+    // データ更新
+    // ================================================================
+    function updateData() {
+        ui.steps.innerText = steps.toLocaleString();
+        ui.coins.innerText = coins.toLocaleString();
+        localStorage.setItem('petStepsNum', steps);
+        localStorage.setItem('petCoinsNum', coins);
+
+        // ステータスバー仮ロジック（歩数に応じて変動）
+        const healthPct = Math.min(100, 40 + (steps % 200) * 0.3);
+        const hungerPct = Math.max(10, 100 - (steps % 300) * 0.3);
+        ui.barHealth.style.width = healthPct + '%';
+        ui.barHunger.style.width = hungerPct + '%';
+    }
+
+    // ================================================================
+    // 向き設定
+    // ================================================================
+    // belly は front のとき完全非表示、left/right では斜め表示、bottom では正面表示
+    const POSES = {
+        front:  {
+            body:  { rx: 92,  ry: 92 },
+            belly: { cx: 150, cy: 115, rx: 80, ry: 72, opacity: 0 },  // ← 正面: 非表示
+            eyes:  { tx: 0,   ty: -10, opacity: 1 },
+        },
+        left:   {
+            body:  { rx: 108, ry: 84 },
+            belly: { cx: 122, cy: 118, rx: 70, ry: 65, opacity: 0.9 },
+            eyes:  { tx: -28, ty: -10, opacity: 1 },
+        },
+        right:  {
+            body:  { rx: 108, ry: 84 },
+            belly: { cx: 178, cy: 118, rx: 70, ry: 65, opacity: 0.9 },
+            eyes:  { tx: 28,  ty: -10, opacity: 1 },
+        },
+        bottom: {
+            body:  { rx: 92,  ry: 90 },
+            belly: { cx: 150, cy: 108, rx: 84, ry: 78, opacity: 1 },
+            eyes:  { tx: 0,   ty: 0,   opacity: 1 },
+        },
+    };
+
+    // ================================================================
+    // キャラクター更新
+    // ================================================================
+    function updateCharacter(pose, expression, animClass, symbolId = null) {
+        currentState = pose;
+
+        // 表情切り替え
+        ui.faces.forEach(f => f.classList.add('hidden'));
+        const faceEl = document.getElementById('face-' + expression);
+        if (faceEl) faceEl.classList.remove('hidden');
+
+        const p = POSES[pose] || POSES.front;
+
+        // 体
+        ui.petBody.setAttribute('rx', p.body.rx);
+        ui.petBody.setAttribute('ry', p.body.ry);
+
+        // お腹（正面は完全非表示）
+        ui.petBelly.setAttribute('cx', p.belly.cx);
+        ui.petBelly.setAttribute('cy', p.belly.cy);
+        ui.petBelly.setAttribute('rx', p.belly.rx);
+        ui.petBelly.setAttribute('ry', p.belly.ry);
+        ui.petBelly.style.opacity = p.belly.opacity;
+
+        // 目
+        ui.petEyes.setAttribute('transform', `translate(${p.eyes.tx}, ${p.eyes.ty})`);
+        ui.petEyes.style.opacity = p.eyes.opacity;
+
+        // アニメーション
+        const base = 'origin-center pet-shadow cursor-pointer';
+        ui.petContainer.className = base;
+        if (animClass) {
+            void ui.petContainer.offsetWidth; // reflow
+            ui.petContainer.classList.add(animClass);
         }
-        
-        const ui = {
-            body: document.body,
-            steps: document.getElementById('steps-display'),
-            coins: document.getElementById('coins-display'),
-            petContainer: document.getElementById('pet-container'),
-            petBody: document.getElementById('pet-body'),
-            petBelly: document.getElementById('pet-belly'),
-            petEyes: document.getElementById('pet-eyes'),
-            eyesInner: document.getElementById('eyes-inner'),
-            symbolContainer: document.getElementById('symbol-container'),
-            symbols: document.querySelectorAll('#symbol-container svg'),
-            btn: document.getElementById('btn-action'),
-            faces: document.querySelectorAll('#eyes-inner > g'),
-            modal: document.getElementById('selection-modal')
-        };
 
-        function applyColorTheme(color) {
-            if (color === 'gold') {
-                ui.petBody.setAttribute('fill', 'url(#bodyGrad-gold)');
-                document.querySelectorAll('.eye-color').forEach(el => el.setAttribute('fill', '#451a03'));
-                document.querySelectorAll('.eye-stroke').forEach(el => el.setAttribute('stroke', '#451a03'));
-            } else {
-                ui.petBody.setAttribute('fill', 'url(#bodyGrad-silver)');
-                document.querySelectorAll('.eye-color').forEach(el => el.setAttribute('fill', '#334155'));
-                document.querySelectorAll('.eye-stroke').forEach(el => el.setAttribute('stroke', '#334155'));
+        // 背景草・足跡
+        const walking = animClass === 'anim-walk';
+        ui.grassSvg.classList.toggle('paused', !walking);
+        ui.groundPath.classList.toggle('paused', !walking);
+
+        // シンボル
+        ui.symbols.forEach(s => s.classList.add('hidden'));
+        if (symbolId) {
+            const sym = document.getElementById('sym-' + symbolId);
+            if (sym) {
+                sym.classList.remove('hidden');
+                ui.symbolCont.className = '';
+                void ui.symbolCont.offsetWidth;
+                ui.symbolCont.classList.add('float');
             }
-        }
-
-        function selectPet(color) {
-            selectedColor = color;
-            localStorage.setItem('petColor', color);
-            applyColorTheme(color);
-            ui.modal.classList.add('hidden');
-            lastMoveTime = Date.now(); 
-        }
-
-        if (!selectedColor) {
-            ui.modal.classList.remove('hidden');
         } else {
-            applyColorTheme(selectedColor);
+            ui.symbolCont.className = '';
+            ui.symbolCont.style.opacity = '0';
         }
+    }
 
-        let lastMoveTime = Date.now();
-        let isWalking = false;
-        let isLeftFoot = false;
-        let isAnimating = false; 
-        let currentState = 'front';
-        let lastStepCountTime = 0;
+    // ================================================================
+    // 放置→ころんと寝転がる
+    // ================================================================
+    function doKoron() {
+        if (isAnimating) return;
+        isAnimating = true;
 
-        function updateData() {
-            ui.steps.innerText = steps;
-            ui.coins.innerText = coins;
-            localStorage.setItem('petStepsNum', steps);
-            localStorage.setItem('petCoinsNum', coins);
+        ui.petContainer.className = 'origin-center pet-shadow cursor-pointer';
+        void ui.petContainer.offsetWidth;
+        ui.petContainer.classList.add('anim-koron');
+
+        setTimeout(() => {
+            updateCharacter('bottom', 'sleep', null, 'zzz');
+        }, 650);
+
+        setTimeout(() => {
+            ui.petContainer.classList.remove('anim-koron');
+            ui.petContainer.classList.add('anim-breathe');
+            isAnimating = false;
+        }, 1300);
+    }
+
+    // ================================================================
+    // ベース状態チェック（放置監視）
+    // ================================================================
+    function checkBaseState() {
+        if (isAnimating) return;
+        const hour     = new Date().getHours();
+        const idleTime = Date.now() - lastMoveTime;
+        const sleepTime = (hour >= 23 || hour < 6) ? 5000 : 15000;
+        if (idleTime > sleepTime && currentState !== 'bottom') doKoron();
+    }
+    setInterval(checkBaseState, 1000);
+
+    // ================================================================
+    // なでる・タップ検知
+    // ================================================================
+    let touchStartX = 0, strokeCount = 0;
+
+    function handleInteractStart(e) {
+        if (isAnimating) return;
+        touchStartX = e.touches ? e.touches[0].clientX : e.clientX;
+        strokeCount = 0;
+    }
+    function handleInteractMove(e) {
+        if (!touchStartX || isAnimating) return;
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        if (Math.abs(cx - touchStartX) > 20) {
+            strokeCount++;
+            touchStartX = cx;
         }
-
-        // --- 角度と状態の制御 ---
-        const angles = {
-            front:  { body: { rx: 95, ry: 95 }, belly: { cx: 150, cy: 195, rx: 55, ry: 20, opacity: 0 }, eyes: { tx: 0, ty: -12, opacity: 1 } },
-            left:   { body: { rx: 110, ry: 85 }, belly: { cx: 120, cy: 185, rx: 50, ry: 25, opacity: 0 }, eyes: { tx: -25, ty: -12, opacity: 1 } },
-            right:  { body: { rx: 110, ry: 85 }, belly: { cx: 180, cy: 185, rx: 50, ry: 25, opacity: 0 }, eyes: { tx: 25, ty: -12, opacity: 1 } },
-            bottom: { body: { rx: 95, ry: 92 }, belly: { cx: 150, cy: 110, rx: 84, ry: 76, opacity: 1 }, eyes: { tx: 0, ty: 0, opacity: 0 } }
-        };
-
-        function updateCharacter(angleName, expression, animClass, symbolId = null) {
-            currentState = angleName;
-            
-            ui.faces.forEach(f => f.classList.add('hidden'));
-            const faceEl = document.getElementById(`face-${expression}`);
-            if (faceEl) faceEl.classList.remove('hidden');
-
-            const p = angles[angleName] || angles['front'];
-            
-            ui.petBody.setAttribute('rx', p.body.rx); 
-            ui.petBody.setAttribute('ry', p.body.ry);
-            
-            ui.petBelly.setAttribute('cx', p.belly.cx);
-            ui.petBelly.setAttribute('cy', p.belly.cy);
-            ui.petBelly.setAttribute('rx', p.belly.rx);
-            ui.petBelly.setAttribute('ry', p.belly.ry);
-            ui.petBelly.style.opacity = p.belly.opacity;
-
-            ui.petEyes.setAttribute('transform', `translate(${p.eyes.tx}, ${p.eyes.ty})`);
-            ui.petEyes.style.opacity = p.eyes.opacity;
-
-            if (animClass) {
-                ui.petContainer.className = 'origin-center mt-12 pet-shadow cursor-pointer';
-                ui.petContainer.classList.add(animClass);
-            }
-            ui.body.classList.toggle('paused', !(animClass === 'anim-walk'));
-
-            if (symbolId) {
-                ui.symbols.forEach(s => s.classList.add('hidden'));
-                const symEl = document.getElementById(`sym-${symbolId}`);
-                if (symEl) {
-                    symEl.classList.remove('hidden');
-                    ui.symbolContainer.className = 'absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none z-20';
-                    void ui.symbolContainer.offsetWidth; 
-                    ui.symbolContainer.classList.add('anim-float');
-                }
-            } else {
-                ui.symbolContainer.className = 'absolute top-[5%] left-0 right-0 flex justify-center pointer-events-none opacity-0 z-20';
-            }
+        if (strokeCount >= 3) {
+            touchStartX = 0; strokeCount = 0;
+            doPettingReaction();
         }
+    }
+    function handleInteractEnd() {
+        if (touchStartX !== 0 && strokeCount === 0 && !isAnimating) doPettingReaction();
+        touchStartX = 0; strokeCount = 0;
+    }
 
-        // --- 放置でコロンと寝転がる ---
-        function doKoron() {
-            if (isAnimating) return;
-            isAnimating = true;
+    ui.petContainer.addEventListener('mousedown',  handleInteractStart);
+    ui.petContainer.addEventListener('mousemove',  handleInteractMove);
+    ui.petContainer.addEventListener('mouseup',    handleInteractEnd);
+    ui.petContainer.addEventListener('mouseleave', handleInteractEnd);
+    ui.petContainer.addEventListener('touchstart', handleInteractStart, {passive: true});
+    ui.petContainer.addEventListener('touchmove',  handleInteractMove,  {passive: true});
+    ui.petContainer.addEventListener('touchend',   handleInteractEnd);
 
-            ui.petContainer.className = 'origin-center mt-12 pet-shadow cursor-pointer';
-            void ui.petContainer.offsetWidth;
-            ui.petContainer.classList.add('anim-koron');
+    // ================================================================
+    // なでられた！
+    // ================================================================
+    function doPettingReaction() {
+        isAnimating = true;
+        lastMoveTime = Date.now();
 
-            setTimeout(() => {
-                updateCharacter('bottom', 'normal', null);
-            }, 600);
+        const sym = currentState === 'bottom' ? 'sparkle' : 'note';
+        updateCharacter('front', 'smile', 'anim-happy', sym);
 
-            setTimeout(() => {
-                ui.petContainer.classList.remove('anim-koron');
-                ui.petContainer.classList.add('anim-breathe');
-                isAnimating = false;
-            }, 1200);
+        setTimeout(() => {
+            updateCharacter('front', 'normal', 'anim-breathe');
+            isAnimating = false;
+        }, 1600);
+    }
+
+    // ================================================================
+    // キョロキョロ（アイドル）
+    // ================================================================
+    function randomLook() {
+        if (isAnimating || Date.now() - lastMoveTime < 2000 || currentState === 'bottom') return;
+        const r = Math.random();
+        if (r < 0.22) {
+            updateCharacter('left', 'normal', 'anim-breathe');
+            setTimeout(() => { if (currentState === 'left' && !isAnimating) updateCharacter('front', 'normal', 'anim-breathe'); }, 2000);
+        } else if (r < 0.44) {
+            updateCharacter('right', 'normal', 'anim-breathe');
+            setTimeout(() => { if (currentState === 'right' && !isAnimating) updateCharacter('front', 'normal', 'anim-breathe'); }, 2000);
         }
+    }
+    setInterval(randomLook, 4200);
 
-        // --- 放置とタップのロジック ---
-        function checkBaseState() {
-            if (isAnimating) return;
-            const hour = new Date().getHours();
-            const idleTime = Date.now() - lastMoveTime;
+    // ================================================================
+    // 歩行ステップ
+    // ================================================================
+    function triggerMove() {
+        lastMoveTime = Date.now();
+        steps++;
+        isLeftFoot = !isLeftFoot;
 
-            if (hour >= 23 || hour < 6) {
-                if (idleTime > 5000 && currentState !== 'bottom') doKoron();
-            } else {
-                // 15秒放置でコロン
-                if (idleTime > 15000 && currentState !== 'bottom') {
-                    doKoron();
-                }
-            }
-        }
-        setInterval(checkBaseState, 1000);
-
-        // --- なでる・タップの検知 ---
-        let touchStartX = 0;
-        let strokeCount = 0;
-
-        function handleInteractStart(e) {
-            if (isAnimating) return;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            touchStartX = clientX;
-            strokeCount = 0;
-        }
-
-        function handleInteractMove(e) {
-            if (!touchStartX || isAnimating) return;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const diff = Math.abs(clientX - touchStartX);
-
-            if (diff > 20) {
-                strokeCount++;
-                touchStartX = clientX; 
-            }
-            if (strokeCount >= 3) {
-                touchStartX = 0;
-                strokeCount = 0;
-                doPettingReaction();
-            }
-        }
-
-        function handleInteractEnd() {
-            if (touchStartX !== 0 && strokeCount === 0 && !isAnimating) {
-                doPettingReaction();
-            }
-            touchStartX = 0;
-            strokeCount = 0;
-        }
-
-        ui.petContainer.addEventListener('mousedown', handleInteractStart);
-        ui.petContainer.addEventListener('mousemove', handleInteractMove);
-        ui.petContainer.addEventListener('mouseup', handleInteractEnd);
-        ui.petContainer.addEventListener('mouseleave', handleInteractEnd);
-
-        ui.petContainer.addEventListener('touchstart', handleInteractStart, {passive: true});
-        ui.petContainer.addEventListener('touchmove', handleInteractMove, {passive: true});
-        ui.petContainer.addEventListener('touchend', handleInteractEnd);
-
-        // --- 喜んで起きるモーション ---
-        function doPettingReaction() {
-            isAnimating = true;
-            lastMoveTime = Date.now();
-            
-            if (currentState === 'bottom') {
-                updateCharacter('front', 'smile', 'anim-happy', 'sparkle');
-            } else {
-                updateCharacter('front', 'smile', 'anim-happy', 'note');
-            }
-
-            setTimeout(() => {
-                updateCharacter('front', 'normal', 'anim-breathe');
-                isAnimating = false;
-            }, 1500);
-        }
-
-        // --- 普段のキョロキョロ ---
-        function randomAction() {
-            if (isAnimating || Date.now() - lastMoveTime < 2000 || currentState === 'bottom') return; 
-            
-            const rand = Math.random();
-            if (rand < 0.2) {
-                updateCharacter('left', 'normal', 'anim-breathe');
-                setTimeout(() => { if(currentState === 'left' && !isAnimating) updateCharacter('front', 'normal', 'anim-breathe'); }, 2000);
-            } else if (rand < 0.4) {
-                updateCharacter('right', 'normal', 'anim-breathe');
-                setTimeout(() => { if(currentState === 'right' && !isAnimating) updateCharacter('front', 'normal', 'anim-breathe'); }, 2000);
-            }
-        }
-        setInterval(randomAction, 4000);
-
-        // --- 歩く ---
-        function triggerMove() {
-            lastMoveTime = Date.now();
-            steps++;
-            isLeftFoot = !isLeftFoot;
-            
-            if (steps % 100 === 0) {
-                coins++;
-                updateCharacter('front', 'smile', 'anim-happy', 'sparkle');
-                updateData();
-                return;
-            }
+        if (steps % 100 === 0) {
+            coins++;
+            updateCharacter('front', 'smile', 'anim-happy', 'sparkle');
             updateData();
-
-            if (isAnimating) return;
-
-            if (currentState === 'bottom') {
-                updateCharacter('front', 'normal', 'anim-walk');
-            } else {
-                updateCharacter(isLeftFoot ? 'left' : 'right', 'normal', 'anim-walk');
-            }
+            return;
         }
-
-        // --- センサー起動と万歩計ロジック（復旧版） ---
-        ui.btn.addEventListener('click', async () => {
-            if (!isWalking) {
-                ui.btn.classList.add('active-state');
-                ui.btn.innerHTML = `<span class="tracking-widest">おさんぽ中...</span>`;
-                isWalking = true;
-
-                // iOS 13以降のセンサー許可リクエスト
-                if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try {
-                        const permissionState = await DeviceMotionEvent.requestPermission();
-                        if (permissionState === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion);
-                        } else {
-                            alert('センサーへのアクセスが拒否されました。設定から許可してください。');
-                        }
-                    } catch (error) {
-                        alert('センサーの起動に失敗しました。HTTPS環境で開いているか確認してください。');
-                    }
-                } else {
-                    // Android等
-                    window.addEventListener('devicemotion', handleMotion);
-                }
-            } else {
-                // PCでのテスト用：ボタンタップでも歩数を進める
-                const now = Date.now();
-                if (now - lastStepCountTime > STEP_COOLDOWN) {
-                    triggerMove();
-                    lastStepCountTime = now;
-                }
-            }
-        });
-
-        // 以前動作していた「重力込みの加速度差分」を使った安定版
-        let lastX, lastY, lastZ;
-        function handleMotion(e) {
-            let acc = e.accelerationIncludingGravity;
-            if (!acc) return;
-            
-            let isStepDetected = false;
-            if (lastX !== undefined) {
-                let deltaX = Math.abs(lastX - acc.x);
-                let deltaY = Math.abs(lastY - acc.y);
-                let deltaZ = Math.abs(lastZ - acc.z);
-                
-                // 閾値：5以上に設定し、歩行時の揺れに反応させる
-                if (deltaX > 5 || deltaY > 5 || deltaZ > 5) {
-                    isStepDetected = true;
-                }
-            }
-            lastX = acc.x; 
-            lastY = acc.y; 
-            lastZ = acc.z;
-
-            if (isStepDetected) {
-                const now = Date.now();
-                // クールダウン（350ms）でチャタリングを防止
-                if (now - lastStepCountTime > STEP_COOLDOWN) {
-                    triggerMove();
-                    lastStepCountTime = now;
-                }
-            }
-        }
-
         updateData();
-        updateCharacter('front', 'normal', 'anim-breathe');
+        if (isAnimating) return;
+
+        if (currentState === 'bottom') {
+            updateCharacter('front', 'normal', 'anim-walk');
+        } else {
+            updateCharacter(isLeftFoot ? 'left' : 'right', 'normal', 'anim-walk');
+        }
+    }
+
+    // ================================================================
+    // センサー / ボタン
+    // ================================================================
+    let lastX, lastY, lastZ;
+
+    function handleMotion(e) {
+        const acc = e.accelerationIncludingGravity;
+        if (!acc) return;
+
+        if (lastX !== undefined) {
+            const dx = Math.abs(lastX - acc.x);
+            const dy = Math.abs(lastY - acc.y);
+            const dz = Math.abs(lastZ - acc.z);
+            if (dx > 5 || dy > 5 || dz > 5) {
+                const now = Date.now();
+                if (now - lastStepCountTime > STEP_COOLDOWN) {
+                    triggerMove();
+                    lastStepCountTime = now;
+                }
+            }
+        }
+        lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+    }
+
+    ui.btn.addEventListener('click', async () => {
+        if (!isWalking) {
+            isWalking = true;
+            ui.btn.classList.add('walking');
+            ui.btn.innerHTML = `
+                <span style="font-family:'Zen Maru Gothic',sans-serif;font-size:17px;font-weight:700;letter-spacing:0.12em;">おさんぽ中…</span>
+                <span class="btn-sub">止まるときはもう一度タップ</span>
+            `;
+
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const state = await DeviceMotionEvent.requestPermission();
+                    if (state === 'granted') {
+                        window.addEventListener('devicemotion', handleMotion);
+                    } else {
+                        alert('センサーへのアクセスが拒否されました。');
+                    }
+                } catch (err) {
+                    alert('センサーの起動に失敗しました。HTTPS環境で開いているか確認してください。');
+                }
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+        } else {
+            // PC テスト用：ボタンタップでステップ
+            const now = Date.now();
+            if (now - lastStepCountTime > STEP_COOLDOWN) {
+                triggerMove();
+                lastStepCountTime = now;
+            }
+        }
+    });
+
+    // ================================================================
+    // 初期化
+    // ================================================================
+    updateData();
+    updateCharacter('front', 'normal', 'anim-breathe');
     </script>
 </body>
 </html>
